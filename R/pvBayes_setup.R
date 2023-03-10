@@ -5,23 +5,24 @@
 #' @export
 pvBayes_setup <- function(...) {
 
-  if (!requireNamespace("cmdstanr", quietly = TRUE)) {
+  if (!requireNamespace("cmdstanr", quietly = TRUE) |
+      cmdstanr::cmdstan_path() == "") {
     msg <- glue::glue(
-      "{cmdstanr} not found. pvBayes uses {cmdstanr} interface \\
+      "cmdstan not found. pvBayes uses {cmdstanr} interface \\
       to stan for MCMC sampling from the Bayesian models. Please \\
-      install {cmdstanr} before using {pvBayes}. For windows systems \\
-      we recommend using the wsl version of cmdstan if available.",
+      install {cmdstanr} and cmdstan before using {pvBayes}. \\
+      For windows systems we recommend using the wsl version of \\
+      cmdstan if available.",
       .open = "<<", .close = ">>"
     )
     stop(msg)
   }
 
+
   msg <- glue::glue(
-    "\nInitializing pvBayes with cmdstanr::cmdstan_model().\\
-     It may take a few minutes to compile the stan programs, please wait...
-     \n \\
-     The compiled programs will be stored in cache for faster \\
-     compilation next time onwards...\n"
+    "\nInitializing pvBayes. It may take a few minutes to compile\\
+    the stan programs, please wait... The compiled programs will be\\
+    stored in cache for faster compilation next time onwards...\n"
   )
   message(msg)
 
@@ -30,10 +31,19 @@ pvBayes_setup <- function(...) {
   cache_loc <- tools::R_user_dir(package = "pvBayes", which = "cache")
   if (!dir.exists(cache_loc)) dir.create(cache_loc)
 
-  stan_source_files <- c(
-    list.files("./stan/", pattern = "\\.stan$", full.names = TRUE),
-    list.files("./inst/stan/", pattern = "\\.stan$", full.names = TRUE)
-  )
+  stan_source_files <- system.file("stan/", package = "pvBayes") %>%
+    list.files(pattern = "\\.stan$", full.names = TRUE)
+
+  if (length(stan_source_files) == 0) {
+    stan_source_files <- c(
+      list.files("./inst/stan/", pattern = "\\.stan$", full.names = TRUE)
+    )
+  }
+
+  if (length(stan_source_files) == 0) {
+    stop("No stan source files found!")
+  }
+
   stan_models <- stan_source_files %>%
     strsplit("\\/") %>%
     sapply(tail, 1) %>%

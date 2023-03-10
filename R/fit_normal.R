@@ -5,7 +5,7 @@
 #' @export
 fit_normal <- function(y, method = "sample", ...) {
 
-  if (is.null(.pvBayes$stanmodels)) {
+  if (is.null(names(.pvBayes$stanmodels))) {
     msg <- glue::glue(
       "Compiled stan models not found. Please run pvBayes_setup()"
     )
@@ -16,15 +16,20 @@ fit_normal <- function(y, method = "sample", ...) {
 
   stan_mod <- .pvBayes$stanmodels$normal_sample
 
-  stan_fn <- if (method == "mcmc" | method == "sample") {
-    stan_mod$sample
-  } else if (method == "variational") {
+  stan_fn <-  if (method == "variational") {
     stan_mod$variational
   } else if (method == "optimize") {
     stan_mod$optimize
+  } else {
+    stan_mod$sample
   }
 
-  fit <- stan_fn(data = stan_data, ...)
+  fit <- tryCatch(
+    stan_fn(data = stan_data, ...),
+    error = function(e) e
+  )
+
+  if (is(fit, "error")) browser()
 
   fit
 }

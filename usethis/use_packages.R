@@ -14,6 +14,10 @@ usethis::use_dev_package("cmdstanr", type= "Imports", remote = "stan-dev/cmdstan
 
 # import
 usethis::use_import_from("glue", "glue")
+usethis::use_import_from("methods", "is")
+usethis::use_import_from("utils", "tail")
+
+
 
 # %>% pipe
 usethis::use_pipe()
