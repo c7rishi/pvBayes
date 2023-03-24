@@ -29,7 +29,10 @@ pvBayes_setup <- function(...) {
   .pvBayes$stanmodels <- new.env(parent = emptyenv())
 
   cache_loc <- tools::R_user_dir(package = "pvBayes", which = "cache")
-  if (!dir.exists(cache_loc)) dir.create(cache_loc)
+  if (!dir.exists(cache_loc)) {
+    tst <- tryCatch(dir.create(cache_loc, recursive = TRUE), error = function(e) e)
+    if (is(tst, "error")) cache_loc <- tempdir()
+  }
 
   stan_source_files <- system.file("stan/", package = "pvBayes") %>%
     list.files(pattern = "\\.stan$", full.names = TRUE)
@@ -79,7 +82,7 @@ pvBayes_setup <- function(...) {
     error = function(e) e
   )
   if (is (tmp, "error")) {
-    msg <- glue(
+    msg <- glue::glue(
       "Running pvBayes_setup() with default setting failed...\n\\
       {pvBayes} uses the cmdstanr interface to stan to run \\
       the MCMC samplers. Please run pvBayes_setup() to \\

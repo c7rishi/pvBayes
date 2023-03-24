@@ -2,9 +2,11 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @import methods
+#' @import utils
 #' @importFrom cmdstanr cmdstan_model
 #' @importFrom glue glue
-#' @import utils
-#' @import methods
+#' @importFrom Rcpp sourceCpp
+#' @useDynLib pvBayes, .registration = TRUE
 ## usethis namespace: end
 NULL

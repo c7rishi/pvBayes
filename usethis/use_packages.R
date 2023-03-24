@@ -33,7 +33,8 @@ usethis::use_rcpp_armadillo()
 import_packages <- c(
   "magrittr",
   "glue",
-  "stats", "methods", "utils"
+  "stats", "methods", "utils",
+  "purrr", "dplyr", "tidyr", "stringr"
 )
 for (pkg in import_packages) usethis::use_package(pkg)
 

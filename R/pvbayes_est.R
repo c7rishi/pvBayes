@@ -2,20 +2,33 @@
 #' @param lambda_draws MCMC samples obtianed from `pvbayes`
 #' @param est_quantile Bayesian estimates using pth-quantile of the MCMC samples
 #' @param alpha Confidence level s.t. pFDR(k)=alpha
-#' @export k Critical value for calculating pFDR
-#' @export optim Indicate if the k value is optimized or specified
-#' @export pFDR Positive false discovery rate value
-#' @export BayesTIE Bayesian type-I error
-
-pvbayes_est <- function(lambda_draws, 
-                        est_quantile, 
+#' @returns
+#' \itemize{
+#'   \item k - Critical value for calculating pFDR
+#'   \item optim - Indicate if the k value is optimized or specified
+#'   \item pFDR - Positive false discovery rate value
+#'   \item BayesTIE - Bayesian type-I error
+#' }
+#' @examples
+#' library(pvLRT)
+#' data(statin64)
+#' mod <- pvbayes(contin_table = statin64, model = "horseshoe)
+#'
+#' #obtain the MCMC samples
+#' mod$lambda_draws
+#'
+#' pvbayes_est(mod$lambda_draws, .5)
+#'
+#' @export
+pvbayes_est <- function(lambda_draws,
+                        est_quantile,
                         alpha = .05){
-  
+
   lambda_est <-
     lambda_draws %>%
-    map_dbl(function(x)quantile(x,est_quantile))
-  
-  res <- 
+    purrr::map_dbl(function(x)quantile(x,est_quantile))
+
+  res <-
     pFDR(par_draws = lambda_draws,
          par_est =  lambda_est,
          optim = TRUE,
@@ -24,5 +37,6 @@ pvbayes_est <- function(lambda_draws,
   return(
     res
   )
-  
+
 }
+

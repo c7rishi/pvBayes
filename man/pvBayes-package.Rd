@@ -9,7 +9,7 @@
 More about what it does (maybe more than one line) Use four spaces when indenting paragraphs within the Description.
 }
 \author{
-\strong{Maintainer}: Xinwei Huang \email{xinwei@gmail.com}
+\strong{Maintainer}: Xinwei Huang \email{xinweihuangstat@gmail.com}
 
 Authors:
 \itemize{
