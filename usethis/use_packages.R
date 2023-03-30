@@ -34,7 +34,7 @@ import_packages <- c(
   "magrittr",
   "glue",
   "stats", "methods", "utils",
-  "purrr", "dplyr", "tidyr", "stringr"
+  "data.table"
 )
 for (pkg in import_packages) usethis::use_package(pkg)
 

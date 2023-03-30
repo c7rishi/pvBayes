@@ -1,21 +1,21 @@
 #' Basis function for computing pFDR
+#' @importFrom data.table :=
+#' @importFrom data.table %like%
 pFDR0 <- function(par_draws,
                   par_est,
                   optim = FALSE,
                   alpha = NULL,
                   k){
 
-  par_name <- stringr::str_extract(names(par_est)[1], "^[^\\[]+")
+  par_name <- sub("\\[.*", "", names(par_est)[1])
 
   Pr <-
     par_draws %>%
-    purrr::map_dbl( function(x) mean( x<=1 ) ) %>%
-    purrr::map2_dbl(par_est, function(x,y) ifelse( y>k, x, 1) ) %>% #mapply
-    dplyr::as_tibble(
-      rownames = par_name
-    ) %>%
-    dplyr::rename(BayesTIE = value) %>%
-    dplyr::mutate(Est = par_est)
+    apply(2, function(x) mean( x<=1 ) ) %>%
+    mapply( function(x, y) ifelse( y>k, x, 1), ., par_est) %>%
+    data.table::as.data.table(keep.rownames=TRUE) %>%
+    data.table::setnames(old = c("rn", "."), new = c(par_name,"BayesTIE")) %>%
+    {.[ , Est := par_est]}
 
   pFDR <-
     Pr$BayesTIE %>%

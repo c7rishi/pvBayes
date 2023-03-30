@@ -40,3 +40,12 @@ pvbayes(
 \description{
 Fitting Poisson model with Bayesian methods for pharmacovigilance
 }
+\examples{
+library(pvLRT)
+data(statin46)
+mod <- pvbayes(contin_table = statin46, model = "horseshoe")
+
+#obtain the MCMC samples
+mod$lambda_draws
+
+}

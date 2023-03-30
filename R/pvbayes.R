@@ -1,4 +1,6 @@
 #' Fitting Poisson model with Bayesian methods for pharmacovigilance
+#' @importFrom data.table :=
+#' @importFrom data.table %like%
 #' @param contin_table IxJ contingency table showing pairwise counts of adverse events for I AE (along the rows) and J Drugs (along the columns)
 #' @param model Select Bayesian methods
 #' \itemize{
@@ -16,8 +18,8 @@
 #' }
 #' @examples
 #' library(pvLRT)
-#' data(statin64)
-#' mod <- pvbayes(contin_table = statin64, model = "horseshoe)
+#' data(statin46)
+#' mod <- pvbayes(contin_table = statin46, model = "horseshoe")
 #'
 #' #obtain the MCMC samples
 #' mod$lambda_draws
@@ -38,40 +40,28 @@ pvbayes <- function(contin_table,
     stop(msg)
   }
 
-  table_E <-
-    contin_table %>%
+  name.c <- colnames(contin_table)
+  name.r <- rownames(contin_table)
+
+  table_long_E <- contin_table %>%
     {tcrossprod(rowSums(.),colSums(.))  / sum(.)} %>%
-    `dimnames<-`(
-      value = list(rownames(contin_table), colnames(contin_table))
-    ) %>%
-    dplyr::as_tibble( #dplyr
-      rownames = "AE"
-    ) %>%
-    tidyr::pivot_longer(
-      cols = -AE,
-      names_to = "Drug",
-      values_to = "E"
-    )
+    `colnames<-`(name.c) %>%
+    data.table::as.data.table() %>%
+    {.[ , AE :=  name.r]} %>%
+    data.table::melt(id.vars = c("AE"),
+         measure.vars = name.c[name.c != "AE"],
+         variable.name = "Drug", value.name = "E") %>%
+    data.table::setkey(Drug, AE)
 
-  suppressMessages(
-    table_long <-
-      contin_table %>%
-      dplyr::as_tibble(
-        rownames = "AE"
-      ) %>%
-      tidyr::pivot_longer(
-        cols = -AE,
-        names_to = "Drug",
-        values_to = "Count"
-      )  %>%
-      dplyr::left_join(
-        y = table_E
-      ) %>%
-      dplyr::mutate(
-        lambda = stringr::str_c("lambda[", as.character(c(1:nrow(table_E))), "]")
-      )
-  )
-
+  table_long <- contin_table %>%
+    data.table::as.data.table() %>%
+    {.[ , AE :=  name.r]}  %>%
+    data.table::melt(id.vars = c("AE"),
+         measure.vars = name.c[name.c != "AE"],
+         variable.name = "Drug", value.name = "Count") %>%
+    data.table::setkey(Drug, AE) %>%
+    merge(table_long_E) %>%
+    {.[ , lambda :=  paste0("lambda[", 1:nrow(.), "]")]}
 
   if (is.null(stan_obj)){
 
@@ -96,7 +86,8 @@ pvbayes <- function(contin_table,
 
   lambda_draws <-
     mod.fit$draws(format = "df") %>%
-    dplyr::select(dplyr::starts_with("lambda"))
+    data.table::as.data.table() %>%
+    {.[,.SD, .SDcols = .[, grepl("^lambda", colnames(.))]]}
 
   return(
     list(

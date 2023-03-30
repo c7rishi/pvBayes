@@ -4,7 +4,7 @@ Title: What the Package Does (Title Case)
 Version: 0.1.0
 Authors@R: c(
     person(
-    "Xinwei", "Huang", 
+    "Xin-Wei", "Huang", 
     email = "xinweihuangstat@gmail.com", 
     role = c("aut", "cre")
     ),
@@ -13,7 +13,7 @@ Authors@R: c(
     role = "aut"
     )
     ) 
-Maintainer: Xinwei Huang <xinweihuangstat@gmail.com>
+Maintainer: Xin-Wei Huang <xinweihuangstat@gmail.com>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL (>= 3)
@@ -24,15 +24,12 @@ RoxygenNote: 7.2.3
 Depends: R (>= 4.0.0)
 Imports: 
     cmdstanr (>= 0.5.3),
-    dplyr,
+    data.table,
     glue,
     magrittr,
     methods,
-    purrr,
     Rcpp,
     stats,
-    stringr,
-    tidyr,
     utils
 Remotes: 
     stan-dev/cmdstanr

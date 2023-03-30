@@ -11,8 +11,8 @@
 #' }
 #' @examples
 #' library(pvLRT)
-#' data(statin64)
-#' mod <- pvbayes(contin_table = statin64, model = "horseshoe)
+#' data(statin46)
+#' mod <- pvbayes(contin_table = statin46, model = "horseshoe")
 #'
 #' #obtain the MCMC samples
 #' mod$lambda_draws
@@ -26,7 +26,7 @@ pvbayes_est <- function(lambda_draws,
 
   lambda_est <-
     lambda_draws %>%
-    purrr::map_dbl(function(x)quantile(x,est_quantile))
+    apply(2, function(x)quantile(x,est_quantile))
 
   res <-
     pFDR(par_draws = lambda_draws,

@@ -13,10 +13,10 @@
 #' }
 #' @examples
 #' library(pvLRT)
-#' data(statin64)
-#' mod <- pvbayes(contin_table = statin64, model = "horseshoe)
+#' data(statin46)
+#' mod <- pvbayes(contin_table = statin46, model = "horseshoe")
 #'
-#' est <- lambda_draws %>% purrr::map_dbl(median)
+#' est <- lambda_draws %>% apply(2, median)
 #'
 #' # K is optimized
 #' pFDR(par_draws = mod$lambda_draws, par_est = est)
