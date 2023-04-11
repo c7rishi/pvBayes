@@ -1,49 +1,46 @@
 data {
-  
-  int<lower=0> N;
-  array[N] real<lower=0> E;
-  array[N] int<lower=0> n;
+
+  int<lower=0> I;
+  int<lower=0> J;
+  array[I, J] real<lower=0> E;
+  array[I, J] int<lower=0> n;
 
 }
 
 transformed data {
-  
-  array[N] real log_E;
+
+  array[I, J] real log_E;
   log_E = log(E);
 
 }
 
 parameters {
-  
-  array[N] real<lower=0> lambda;
+
+  array[I, J] real<lower=0> lambda;
   real<lower=0> tau;
-  array[N] real<lower=0> theta;
-
-}
-
-transformed parameters {
-  
-  array[N] real log_lambda;
-  log_lambda = log(lambda);
+  array[I, J] real<lower=0> theta;
 
 }
 
 model {
-  
-  for (i in 1 : N){
-    
-    n[i] ~ poisson ( lambda[i] * E[i] );
-  
+
+  array[I, J] real log_lambda;
+  log_lambda = log(lambda);
+
+  for (i in 1 : I){
+    for (j in 1 : J){
+      n[i, j] ~ poisson ( lambda[i, j] * E[i, j] );
+    }
   }
-  
+
   tau ~ cauchy(0, 1);
-  
-  for (i in 1 : N){
-    
-    theta[i] ~ cauchy (0, 1);
-    log_lambda[i] ~ normal ( 0, tau * theta[i] );
-  
+
+  for (i in 1 : I){
+    for(j in 1 : J){
+      theta[i, j] ~ cauchy (0, 1);
+      log_lambda[i, j] ~ normal ( 0, tau * theta[i, j] );
+    }
   }
-  
+
 }
 
