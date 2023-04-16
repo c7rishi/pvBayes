@@ -71,8 +71,8 @@ model {
     }
   }
 
-  alpha ~ cauchy(0,10);
-  tau ~ cauchy(0,10);
+  alpha ~ cauchy(0,1);
+  tau ~ cauchy(0,1);
 
   for (i in 1 : I){
     for (j in 1 : J){

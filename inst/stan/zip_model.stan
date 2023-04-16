@@ -50,11 +50,9 @@ model {
   }
 
   tau ~ cauchy(0, 1);
+  omega ~ beta(0.5, 0.5); //Jeffrey's prior
 
   for (j in 1 : J){
-
-    omega[j] ~ beta(0.5, 0.5); #Jeffrey's prior
-
     for (i in 1 : I){
 
       theta[i,j] ~ cauchy (0, 1);

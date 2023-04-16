@@ -1,20 +1,20 @@
 #' Fitting Poisson model with Bayesian methods for pharmacovigilance
-#' @importFrom data.table :=
-#' @importFrom data.table %like%
+#' @importFrom data.table `:=`
+#' @importFrom data.table `%like%`
 #' @param contin_table IxJ contingency table showing pairwise counts of adverse events for I AE (along the rows) and J Drugs (along the columns)
 #' @param model Select Bayesian methods
 #' \itemize{
 #'   \item `horseshoe` - model 1
 #'   \item `beta_prime` - model 2
 #' }
-#' @param stan_obj User defined model in stan with input: `n` counts in each cells, `E` expected value for each cells, and `N`total number of cells IxJ
+#' @param stan_obj User defined model in stan with input: `n` counts in each cells, `E` expected value for each cells, and `N` total number of cells IxJ
 #' @param stan_seed A seed for the (P)RNG to pass to CmdStan.
 #' @param stan_chains The number of Markov chains to run in CmdStan. The default is 2.
 #' @param stan_parallel_chains The maximum number of MCMC chains to run in parallel in CmdStan.
 #' @returns
 #' \itemize{
 #'   \item lambda_draws - A tibble contain the MCMC samples for each poisson rate parameter.
-#'   \item contin_table_long - The converted contigency table in long format tibble.
+#'   \item contin_table_long - The converted contingency table in long format tibble.
 #' }
 #' @examples
 #' library(pvLRT)
@@ -25,13 +25,13 @@
 #' mod$lambda_draws
 #'
 #' @export
-pvbayes <- function(contin_table,
-                    model = "horseshoe",
-                    stan_obj = NULL,
-                    stan_seed = 123,
-                    stan_chains = 2,
-                    stan_parallel_chains = 2,
-                    ...){
+pvbayes_m <- function(contin_table,
+                      model = "horseshoe",
+                      stan_obj = NULL,
+                      stan_seed = 123,
+                      stan_chains = 2,
+                      stan_parallel_chains = 2,
+                      ...){
 
   if (is.null(names(.pvBayes$stanmodels))) {
     msg <- glue::glue(
@@ -39,29 +39,6 @@ pvbayes <- function(contin_table,
     )
     stop(msg)
   }
-
-  name.c <- colnames(contin_table)
-  name.r <- rownames(contin_table)
-
-  table_long_E <- contin_table %>%
-    {tcrossprod(rowSums(.),colSums(.))  / sum(.)} %>%
-    `colnames<-`(name.c) %>%
-    data.table::as.data.table() %>%
-    {.[ , AE :=  name.r]} %>%
-    data.table::melt(id.vars = c("AE"),
-         measure.vars = name.c[name.c != "AE"],
-         variable.name = "Drug", value.name = "E") %>%
-    data.table::setkey(Drug, AE)
-
-  table_long <- contin_table %>%
-    data.table::as.data.table() %>%
-    {.[ , AE :=  name.r]}  %>%
-    data.table::melt(id.vars = c("AE"),
-         measure.vars = name.c[name.c != "AE"],
-         variable.name = "Drug", value.name = "Count") %>%
-    data.table::setkey(Drug, AE) %>%
-    merge(table_long_E) %>%
-    {.[ , lambda :=  paste0("lambda[", 1:nrow(.), "]")]}
 
   if (is.null(stan_obj)){
 
@@ -73,25 +50,155 @@ pvbayes <- function(contin_table,
 
   }
 
+  stopifnot(model %in% c("zip", "horseshoe", "beta_prime"))
+
+  I <- nrow(contin_table)
+  J <- ncol(contin_table)
+  name.c <- colnames(contin_table)
+  name.r <- rownames(contin_table)
+
+  table_E <- contin_table %>%
+    {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
+
+  lambda_txt <- matrix(NA, I, J, dimnames = list(name.r, name.c))
+
+  for (i in 1:I) {
+    for (j in 1:J) {
+      lambda_txt[i, j] <- glue::glue("lambda[{i},{j}]")
+    }
+  }
+
+  table_long_txt <- lambda_txt %>%
+    `colnames<-`(name.c) %>%
+    data.table::as.data.table() %>%
+    {.[ , AE :=  name.r]} %>%
+    data.table::melt(id.vars = c("AE"),
+                     measure.vars = name.c[name.c != "AE"],
+                     variable.name = "Drug", value.name = "lambda") %>%
+    data.table::setkey(Drug, AE)
+
+  table_long_E <- table_E %>%
+    `colnames<-`(name.c) %>%
+    data.table::as.data.table() %>%
+    {.[ , AE :=  name.r]} %>%
+    data.table::melt(id.vars = c("AE"),
+                     measure.vars = name.c[name.c != "AE"],
+                     variable.name = "Drug", value.name = "E") %>%
+    data.table::setkey(Drug, AE)
+
+  table_long <- contin_table %>%
+    data.table::as.data.table() %>%
+    {.[ , AE :=  name.r]}  %>%
+    data.table::melt(id.vars = c("AE"),
+                     measure.vars = name.c[name.c != "AE"],
+                     variable.name = "Drug", value.name = "Count") %>%
+    data.table::setkey(Drug, AE) %>%
+    merge(table_long_E) %>%
+    merge(table_long_txt)
+
+  # lambda_txt <- lambda_names <-
+  #   matrix(NA, I, J, dimnames = list(name.r, name.c))
+  #
+  # for (i in 1:I) {
+  #   for (j in 1:J) {
+  #     lambda_txt[i, j] <- glue::glue("lambda[{i},{j}]")
+  #   }
+  # }
+
+  # lambda_names_df <- data.table::as.data.table(
+  #   lambda_txt,
+  #   keep.rownames = TRUE
+  # ) %>%
+  #   data.table::melt(
+  #     id.vars = "rn",
+  #     value.name = "lambda",
+  #     variable.name = "Drug"
+  #   )
+
+  # data.table::setnames(
+  #   lambda_names_df, "rn", "AE"
+  # )
+  #
+  # table_E <- contin_table %>%
+  #   {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
+  #
+  # mod.fit <- mod$sample(
+  #   data = list(
+  #     I = I,
+  #     J = J,
+  #     n = contin_table,
+  #     E = table_E
+  #   ),
+  #   seed = stan_seed,
+  #   chains = stan_chains,
+  #   parallel_chains = stan_parallel_chains
+  # )
+  #
+  #
+  # all_draws_df <-
+  #   mod.fit$draws(format = "draws_array") %>%
+  #   data.table::as.data.table()
+  #
+  # data.table::setnames(
+  #   all_draws_df,
+  #   old = c("variable", "value"),
+  #   new = c("parameter", "draws")
+  # )
+  #
+  # lambda_draws <- all_draws_df[grepl("lambda", parameter)] %>%
+  #   data.table::merge.data.table(
+  #     lambda_names_df,
+  #     by.x = "parameter",
+  #     by.y = "lambda"
+  #   )
+  #
+  # omega_draws <- all_draws_df[grepl("omega", parameter)] %>%
+  #   data.table::merge.data.table(
+  #     lambda_names_df,
+  #     by.x = "parameter",
+  #     by.y = "omega"
+  #   )
+  #
+  # lambda_names_df[, kappa := stringr::str_replace(lambda, "lambda", "kappa")]
+  # omega_draws <- all_draws_df[grepl("omega", parameter)]
+
+
   mod.fit <- mod$sample(
     data = list(
-      N = nrow(table_long),
-      n = table_long$Count,
-      E = table_long$E
+      I = I,
+      J = J,
+      n = contin_table,
+      E = table_E
     ),
     seed = stan_seed,
     chains = stan_chains,
     parallel_chains = stan_parallel_chains
   )
 
-  lambda_draws <-
-    mod.fit$draws(format = "df") %>%
-    data.table::as.data.table() %>%
-    {.[,.SD, .SDcols = .[, grepl("^lambda", colnames(.))]]}
+  par_vec <- c("lambda", "omega", "kappa", "zi")
+
+  for (k in 1:length(par_vec)){
+
+    temp <- try(
+      {mod.fit$draws(format = "df", variables = par_vec[k]) %>%
+          data.table::as.data.table()%>%
+          {.[,.SD, .SDcols = .[, grepl(paste0("^", par_vec[k]), colnames(.))]]}
+      },
+      silent=TRUE)
+
+    if (inherits(temp, "try-error")) {
+      assign(paste0( par_vec[k],"_draws"), NULL)
+    } else{
+      assign(paste0( par_vec[k],"_draws"), temp)
+    }
+
+  }
 
   return(
     list(
       lambda_draws = lambda_draws,
+      omega_draws = omega_draws,
+      kappa_draws = kappa_draws,
       contin_table_long = table_long
     )
 

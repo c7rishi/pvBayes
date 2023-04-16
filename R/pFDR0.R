@@ -14,7 +14,8 @@ pFDR0 <- function(par_draws,
     apply(2, function(x) mean( x<=1 ) ) %>%
     mapply( function(x, y) ifelse( y>k, x, 1), ., par_est) %>%
     data.table::as.data.table(keep.rownames=TRUE) %>%
-    data.table::setnames(old = c("rn", "."), new = c(par_name,"BayesTIE")) %>%
+    data.table::setnames(old = c("rn", "."),
+                         new = c(par_name,"BayesTIE")) %>%
     {.[ , Est := par_est]}
 
   pFDR <-
