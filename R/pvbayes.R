@@ -96,73 +96,6 @@ pvbayes_m <- function(contin_table,
     merge(table_long_E) %>%
     merge(table_long_txt)
 
-  # lambda_txt <- lambda_names <-
-  #   matrix(NA, I, J, dimnames = list(name.r, name.c))
-  #
-  # for (i in 1:I) {
-  #   for (j in 1:J) {
-  #     lambda_txt[i, j] <- glue::glue("lambda[{i},{j}]")
-  #   }
-  # }
-
-  # lambda_names_df <- data.table::as.data.table(
-  #   lambda_txt,
-  #   keep.rownames = TRUE
-  # ) %>%
-  #   data.table::melt(
-  #     id.vars = "rn",
-  #     value.name = "lambda",
-  #     variable.name = "Drug"
-  #   )
-
-  # data.table::setnames(
-  #   lambda_names_df, "rn", "AE"
-  # )
-  #
-  # table_E <- contin_table %>%
-  #   {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
-  #
-  # mod.fit <- mod$sample(
-  #   data = list(
-  #     I = I,
-  #     J = J,
-  #     n = contin_table,
-  #     E = table_E
-  #   ),
-  #   seed = stan_seed,
-  #   chains = stan_chains,
-  #   parallel_chains = stan_parallel_chains
-  # )
-  #
-  #
-  # all_draws_df <-
-  #   mod.fit$draws(format = "draws_array") %>%
-  #   data.table::as.data.table()
-  #
-  # data.table::setnames(
-  #   all_draws_df,
-  #   old = c("variable", "value"),
-  #   new = c("parameter", "draws")
-  # )
-  #
-  # lambda_draws <- all_draws_df[grepl("lambda", parameter)] %>%
-  #   data.table::merge.data.table(
-  #     lambda_names_df,
-  #     by.x = "parameter",
-  #     by.y = "lambda"
-  #   )
-  #
-  # omega_draws <- all_draws_df[grepl("omega", parameter)] %>%
-  #   data.table::merge.data.table(
-  #     lambda_names_df,
-  #     by.x = "parameter",
-  #     by.y = "omega"
-  #   )
-  #
-  # lambda_names_df[, kappa := stringr::str_replace(lambda, "lambda", "kappa")]
-  # omega_draws <- all_draws_df[grepl("omega", parameter)]
-
-
   mod.fit <- mod$sample(
     data = list(
       I = I,
@@ -199,6 +132,7 @@ pvbayes_m <- function(contin_table,
       lambda_draws = lambda_draws,
       omega_draws = omega_draws,
       kappa_draws = kappa_draws,
+      zi_draws = kappa_draws,
       contin_table_long = table_long
     )
 
