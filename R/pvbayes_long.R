@@ -1,5 +1,5 @@
 #' Fitting Poisson model with Bayesian methods for pharmacovigilance
-pvbayes <- function(contin_table,
+pvbayes_long <- function(contin_table,
                     model = "horseshoe",
                     stan_obj = NULL,
                     stan_seed = 123,

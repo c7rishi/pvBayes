@@ -37,13 +37,14 @@ model {
       if (n[i,j] == 0) {
 
         target += log_sum_exp(bernoulli_lpmf(1 | omega[j]),
-                               bernoulli_lpmf(0 | omega[j])
-                                + poisson_lpmf(0 | lambda[i,j]*E[i,j]));
+        bernoulli_lpmf(0 | omega[j])
+        + poisson_lpmf(0 | lambda[i,j]*E[i,j]));
 
       } else {
 
         target += bernoulli_lpmf(0 | omega[j])
-                   + poisson_lpmf(n[i,j] | lambda[i,j]*E[i,j]);
+        + poisson_lpmf(n[i,j] | lambda[i,j]*E[i,j]);
+
       }
 
     }
@@ -62,3 +63,22 @@ model {
   }
 }
 
+generated quantities {
+
+  array[I, J] real<lower=0, upper=1> zi;
+
+  for (j in 1 : J){
+    for (i in 1 : I){
+      if (n[i, j] == 0) {
+
+        zi[i, j] = omega[j] / ( omega[j] + (1-omega[j])*exp(-lambda[i, j]*E[i, j]) );
+
+      } else{
+
+        zi[i, j] = 0;
+
+      }
+    }
+  }
+
+}

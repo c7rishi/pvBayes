@@ -25,7 +25,7 @@
 #' mod$lambda_draws
 #'
 #' @export
-pvbayes_m <- function(contin_table,
+pvbayes <- function(contin_table,
                       model = "horseshoe",
                       stan_obj = NULL,
                       stan_seed = 123,
@@ -132,7 +132,7 @@ pvbayes_m <- function(contin_table,
       lambda_draws = lambda_draws,
       omega_draws = omega_draws,
       kappa_draws = kappa_draws,
-      zi_draws = kappa_draws,
+      zi_draws = zi_draws,
       contin_table_long = table_long
     )
 
