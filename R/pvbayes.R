@@ -50,12 +50,18 @@ pvbayes <- function(contin_table,
 
   }
 
-  stopifnot(model %in% c("zip", "horseshoe", "beta_prime"))
+  stopifnot(model %in%
+              c("zip", "horseshoe", "beta_prime", "regularized_zip", "regularized_horseshoe"))
 
   I <- nrow(contin_table)
   J <- ncol(contin_table)
   name.c <- colnames(contin_table)
   name.r <- rownames(contin_table)
+
+  dots <- list(...)
+
+  t_nu <- dots$t_nu
+  if (is.null(t_nu)) t_nu <- 2
 
   table_E <- contin_table %>%
     {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
@@ -101,7 +107,8 @@ pvbayes <- function(contin_table,
       I = I,
       J = J,
       n = contin_table,
-      E = table_E
+      E = table_E,
+      t_nu = t_nu
     ),
     seed = stan_seed,
     chains = stan_chains,
