@@ -51,7 +51,7 @@ pvbayes <- function(contin_table,
   }
 
   stopifnot(model %in%
-              c("zip", "horseshoe", "beta_prime", "regularized_zip", "regularized_horseshoe"))
+              c("zip", "horseshoe", "beta_prime", "regularized_zip", "regularized_horseshoe", "regularized_zip2"))
 
   I <- nrow(contin_table)
   J <- ncol(contin_table)
@@ -60,8 +60,18 @@ pvbayes <- function(contin_table,
 
   dots <- list(...)
 
-  t_nu <- dots$t_nu
-  if (is.null(t_nu)) t_nu <- 2
+
+  scale_global <- dots$scale_global
+  nu_global <- dots$nu_global
+  nu_local <- dots$nu_local
+  slab_scale <- dots$slab_scale
+  slab_df <- dots$slab_df
+
+  if (is.null(scale_global)) scale_global <- 1
+  if (is.null(nu_global)) nu_global <- 1
+  if (is.null(nu_local)) nu_local <- 1
+  if (is.null(slab_scale)) slab_scale <- 1
+  if (is.null(slab_df)) slab_df <- 1
 
   table_E <- contin_table %>%
     {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
@@ -108,7 +118,11 @@ pvbayes <- function(contin_table,
       J = J,
       n = contin_table,
       E = table_E,
-      t_nu = t_nu
+      nu_global = nu_global,
+      nu_local = nu_local,
+      scale_global = scale_global,
+      slab_scale = slab_scale,
+      slab_df = slab_df
     ),
     seed = stan_seed,
     chains = stan_chains,
