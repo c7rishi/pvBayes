@@ -51,7 +51,7 @@ pvbayes <- function(contin_table,
   }
 
   stopifnot(model %in%
-              c("zip", "horseshoe", "beta_prime", "regularized_zip", "regularized_horseshoe", "regularized_zip2"))
+              c("zip", "horseshoe", "beta_prime", "horseshoe_glm","regularized_zip", "regularized_horseshoe", "regularized_zip2"))
 
   I <- nrow(contin_table)
   J <- ncol(contin_table)
@@ -62,16 +62,24 @@ pvbayes <- function(contin_table,
 
 
   scale_global <- dots$scale_global
+  scale_local <- dots$scale_local
   nu_global <- dots$nu_global
   nu_local <- dots$nu_local
   slab_scale <- dots$slab_scale
   slab_df <- dots$slab_df
+  c_alpha <- dots$c_alpha
+  c_beta <- dots$c_beta
+  gamma <- dots$gamma
 
+  if (is.null(scale_local)) scale_local <- 1
   if (is.null(scale_global)) scale_global <- 1
   if (is.null(nu_global)) nu_global <- 1
   if (is.null(nu_local)) nu_local <- 1
   if (is.null(slab_scale)) slab_scale <- 1
   if (is.null(slab_df)) slab_df <- 1
+  if (is.null(c_alpha)) c_alpha <- 1
+  if (is.null(c_beta)) c_beta <- 1
+  if (is.null(gamma)) gamma <- 20
 
   table_E <- contin_table %>%
     {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
@@ -121,8 +129,12 @@ pvbayes <- function(contin_table,
       nu_global = nu_global,
       nu_local = nu_local,
       scale_global = scale_global,
+      scale_local = scale_local,
       slab_scale = slab_scale,
-      slab_df = slab_df
+      slab_df = slab_df,
+      c_alpha = c_alpha,
+      c_beta = c_beta,
+      gamma = gamma
     ),
     seed = stan_seed,
     chains = stan_chains,

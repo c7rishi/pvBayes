@@ -9,8 +9,14 @@ data {
 
 transformed data {
 
-  array[I, J] real log_E;
-  log_E = log(E);
+  array[I, J] real E_ratio;
+
+  for(i in 1 : I){
+    for(j in 1 : J){
+      E_ratio[i, j] = E[i, j]/(1+E[i, j]);
+    }
+
+  }
 
 }
 
@@ -37,7 +43,7 @@ model {
 
   for (i in 1 : I){
     for(j in 1 : J){
-      theta[i, j] ~ cauchy (0, 1);
+      theta[i, j] ~ cauchy (0, E_ratio[i, j]);
       log_lambda[i, j] ~ normal ( 0, tau * theta[i, j] );
     }
   }
