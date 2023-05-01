@@ -26,13 +26,14 @@
 #'
 #' @export
 pvbayes <- function(contin_table,
-                      model = "horseshoe",
-                      stan_obj = NULL,
-                      stan_seed = 123,
-                      stan_chains = 2,
-                      stan_parallel_chains = 2,
-                      ...){
+                    model = "horseshoe",
+                    stan_obj = NULL,
+                    stan_seed = 123,
+                    stan_chains = 2,
+                    stan_parallel_chains = 2,
+                    ...){
 
+  #find compiled model
   if (is.null(names(.pvBayes$stanmodels))) {
     msg <- glue::glue(
       "Compiled stan models not found. Please run pvBayes_setup()"
@@ -40,9 +41,17 @@ pvbayes <- function(contin_table,
     stop(msg)
   }
 
+  # allow input stan object
   if (is.null(stan_obj)){
 
-    mod <- .pvBayes$stanmodels[[glue::glue(model,"model",.sep = "_")]]
+    #check model name exist
+    if( !model %in% names(.pvBayes$stanmodels) ){
+      msg <- glue::glue(
+        "Model name not exist. Please check ?pvbayes() to find avaible models."
+      )
+      stop(msg)
+    }
+    mod <- .pvBayes$stanmodels[[model]]
 
   } else {
 
@@ -50,8 +59,6 @@ pvbayes <- function(contin_table,
 
   }
 
-  stopifnot(model %in%
-              c("zip", "horseshoe", "beta_prime", "horseshoe_glm","regularized_zip", "regularized_horseshoe", "regularized_zip2"))
 
   I <- nrow(contin_table)
   J <- ncol(contin_table)
@@ -59,33 +66,28 @@ pvbayes <- function(contin_table,
   name.r <- rownames(contin_table)
 
   dots <- list(...)
+  additional_var <- list(
+    scale_global = 1,
+    scale_local = 1,
+    nu_global = 1,
+    nu_local = 1,
+    slab_scale = 1,
+    slab_df = 1,
+    c_alpha = 1,
+    c_beta = 1,
+    gamma = 10
+  )
 
-
-  scale_global <- dots$scale_global
-  scale_local <- dots$scale_local
-  nu_global <- dots$nu_global
-  nu_local <- dots$nu_local
-  slab_scale <- dots$slab_scale
-  slab_df <- dots$slab_df
-  c_alpha <- dots$c_alpha
-  c_beta <- dots$c_beta
-  gamma <- dots$gamma
-
-  if (is.null(scale_local)) scale_local <- 1
-  if (is.null(scale_global)) scale_global <- 1
-  if (is.null(nu_global)) nu_global <- 1
-  if (is.null(nu_local)) nu_local <- 1
-  if (is.null(slab_scale)) slab_scale <- 1
-  if (is.null(slab_df)) slab_df <- 1
-  if (is.null(c_alpha)) c_alpha <- 1
-  if (is.null(c_beta)) c_beta <- 1
-  if (is.null(gamma)) gamma <- 20
+  for (name in names(additional_var)) {
+    if (!is.null(dots[[name]])) {
+      additional_var[[name]] <- dots[[name]]
+    }
+  }
 
   table_E <- contin_table %>%
     {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
 
   lambda_txt <- matrix(NA, I, J, dimnames = list(name.r, name.c))
-
   for (i in 1:I) {
     for (j in 1:J) {
       lambda_txt[i, j] <- glue::glue("lambda[{i},{j}]")
@@ -120,22 +122,28 @@ pvbayes <- function(contin_table,
     merge(table_long_E) %>%
     merge(table_long_txt)
 
+
+  # table_long_txt <- lambda_txt[, AE := name.r][, melt(.SD, id.vars = "AE",
+  #                                                     measure.vars = name.c[name.c != "AE"], variable.name = "Drug",
+  #                                                     value.name = "lambda"), keyby = .(Drug, AE)]
+  #
+  # table_long_E <- table_E[, AE := name.r][, melt(.SD, id.vars = "AE",
+  #                                                measure.vars = name.c[name.c != "AE"], variable.name = "Drug",
+  #                                                value.name = "E"), keyby = .(Drug, AE)]
+  #
+  # table_long <- contin_table[, AE := name.r][, melt(.SD, id.vars = "AE",
+  #                                                   measure.vars = name.c[name.c != "AE"], variable.name = "Drug",
+  #                                                   value.name = "Count"), keyby = .(Drug, AE)][table_long_E][table_long_txt]
+
+  stan_data = list(
+    I = I,
+    J = J,
+    n = contin_table,
+    E = table_E
+  )
+
   mod.fit <- mod$sample(
-    data = list(
-      I = I,
-      J = J,
-      n = contin_table,
-      E = table_E,
-      nu_global = nu_global,
-      nu_local = nu_local,
-      scale_global = scale_global,
-      scale_local = scale_local,
-      slab_scale = slab_scale,
-      slab_df = slab_df,
-      c_alpha = c_alpha,
-      c_beta = c_beta,
-      gamma = gamma
-    ),
+    data = c(stan_data, additional_var),
     seed = stan_seed,
     chains = stan_chains,
     parallel_chains = stan_parallel_chains
