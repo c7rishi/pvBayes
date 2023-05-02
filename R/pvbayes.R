@@ -47,7 +47,7 @@ pvbayes <- function(contin_table,
     #check model name exist
     if( !model %in% names(.pvBayes$stanmodels) ){
       msg <- glue::glue(
-        "Model name not exist. Please check ?pvbayes() to find avaible models."
+        "Model name not exists. Please check ?pvbayes() to find avaible models."
       )
       stop(msg)
     }
@@ -75,7 +75,8 @@ pvbayes <- function(contin_table,
     slab_df = 1,
     c_alpha = 1,
     c_beta = 1,
-    gamma = 10
+    gamma = 10,
+    b = 1
   )
 
   for (name in names(additional_var)) {
@@ -149,7 +150,7 @@ pvbayes <- function(contin_table,
     parallel_chains = stan_parallel_chains
   )
 
-  par_vec <- c("lambda", "omega", "kappa", "zi")
+  par_vec <- c("lambda", "omega", "kappa", "zi", "n_pred")
 
   for (k in 1:length(par_vec)){
 
@@ -174,6 +175,7 @@ pvbayes <- function(contin_table,
       omega_draws = omega_draws,
       kappa_draws = kappa_draws,
       zi_draws = zi_draws,
+      n_pred_draws = n_pred_draws,
       contin_table_long = table_long
     )
 

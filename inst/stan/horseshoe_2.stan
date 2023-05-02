@@ -4,7 +4,7 @@ data {
   int<lower=0> J;
   array[I, J] real<lower=0> E;
   array[I, J] int<lower=0> n;
-  real<lower=0> gamma;
+  real<lower=0> b;
 
 }
 
@@ -29,7 +29,7 @@ parameters {
   array[I, J] real<lower=0> lambda;
   real<lower=0> tau;
   array[I, J] real<lower=0> theta;
-  //real<lower=0> gamma;
+  real<lower=0> gamma;
 }
 
 model {
@@ -37,7 +37,7 @@ model {
   array[I, J] real log_lambda;
   log_lambda = log(lambda);
 
-  //gamma ~ uniform(0.001, 10);
+  gamma ~ uniform(0, b);
 
   for (i in 1 : I){
     for (j in 1 : J){

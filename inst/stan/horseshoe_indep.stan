@@ -7,43 +7,58 @@ data {
   //real<lower=0> gamma;
 }
 
-/*transformed data {
+transformed data {
 
-  array[I, J] real E_ratio;
+  array[I, J] real log_E;
 
   for(i in 1 : I){
     for(j in 1 : J){
-      E_ratio[i, j] = E[i, j]/(1+E[i, j]);
+      log_E[i, j] = log(E[i, j]);
     }
   }
 
-}*/
+}
 
 parameters {
 
-  array[I, J] real<lower=0> lambda;
   real<lower=0> tau;
   array[I, J] real<lower=0> theta;
+  real<lower = 0> sigma_indep;
+  array[I, J] real log_mu;
+
+}
+
+transformed parameters {
+
+  array[I, J] real log_lambda;
+  array[I, J] real<lower=0> lambda;
+
+  for (i in 1 : I){
+    for (j in 1 :J ){
+      log_lambda[i,j] = log_mu[i,j] - log_E[i,j];
+      lambda[i,j] = exp(log_lambda[i,j]);
+    }
+  }
+
+
 
 }
 
 model {
 
-  array[I, J] real log_lambda;
-  log_lambda = log(lambda);
 
   for (i in 1 : I){
     for (j in 1 : J){
-      n[i, j] ~ poisson ( lambda[i, j] * E[i, j] );
+      n[i, j] ~ poisson_log ( log_mu[i, j] );
     }
   }
 
   tau ~ cauchy(0, 1);
-
+  sigma_indep ~ cauchy(0, 1);
   for (i in 1 : I){
     for(j in 1 : J){
       theta[i, j] ~ cauchy (0, 1);
-      log_lambda[i, j] ~ normal ( 0, tau * theta[i, j] );
+      log_mu[i, j] ~ normal ( log_E[i, j], sqrt(sigma_indep^2+tau^2 * theta[i, j]^2) );
     }
   }
 
