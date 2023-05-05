@@ -40,7 +40,6 @@ transformed parameters {
   for (i in 1 : I){
     for (j in 1 :J ){
       log_mu[i, j] = log_lambda[i, j] + log_beta_0 + log_beta_AE[i] + log_beta_Drug[j] + log_E[i, j];
-      //log_lambda[i,j] = log_mu[i,j] - log_beta_0 - log_beta_AE[i] - log_beta_Drug[j] - log_E[i,j];
       lambda[i, j] = exp(log_lambda[i, j]);
     }
   }
@@ -51,7 +50,6 @@ model {
 
   tau ~ cauchy(0, 1);
   omega ~ beta(0.5, 0.5); //Jeffrey's prior
-  //sigma_indep ~ cauchy(0, 1);
 
   sigma_beta_0 ~ cauchy(0, 1);
   sigma_beta_AE ~ cauchy(0, 1);
@@ -67,22 +65,18 @@ model {
       theta[i,j] ~ cauchy (0, 1);
       log_lambda[i, j] ~ normal(0, tau * theta[i, j]);
 
-      /*log_mu[i, j] ~ normal (
-        log_E[i, j] + log_beta_0 + log_beta_AE[i] + log_beta_Drug[j],
-        sqrt(sigma_beta_0^2 + sigma_beta_AE^2 + sigma_beta_Drug^2 + tau^2 * theta[i, j]^2) );
-      */
-        if (n[i, j] == 0) {
+      if (n[i, j] == 0) {
 
-          target += log_sum_exp(bernoulli_lpmf(1 | omega[j]),
-          bernoulli_lpmf(0 | omega[j])
-          + poisson_log_lpmf(0 | log_mu[i, j] ) );
+        target += log_sum_exp(bernoulli_lpmf(1 | omega[j]),
+        bernoulli_lpmf(0 | omega[j])
+        + poisson_log_lpmf(0 | log_mu[i, j] ) );
 
-        } else {
+      } else {
 
-          target += bernoulli_lpmf(0 | omega[j])
-          + poisson_log_lpmf(n[i, j] | log_mu[i, j] );
+        target += bernoulli_lpmf(0 | omega[j])
+        + poisson_log_lpmf(n[i, j] | log_mu[i, j] );
 
-        }
+      }
 
     }
   }
