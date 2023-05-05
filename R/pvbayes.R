@@ -150,7 +150,13 @@ pvbayes <- function(contin_table,
     parallel_chains = stan_parallel_chains
   )
 
-  par_vec <- c("lambda", "omega", "kappa", "zi", "n_pred")
+  par_vec <- c("lambda",
+               "omega",
+               "kappa",
+               "zi",
+               "n_pred")
+
+  draws_list <- list()
 
   for (k in 1:length(par_vec)){
 
@@ -162,21 +168,18 @@ pvbayes <- function(contin_table,
       silent=TRUE)
 
     if (inherits(temp, "try-error")) {
-      assign(paste0( par_vec[k],"_draws"), NULL)
+      draws_list[[paste0( par_vec[k],"_draws")]] <- NULL
+      #assign(paste0( par_vec[k],"_draws"), NULL)
     } else{
-      assign(paste0( par_vec[k],"_draws"), temp)
+      draws_list[[paste0( par_vec[k],"_draws")]] <- temp
+      #assign(paste0( par_vec[k],"_draws"), temp)
     }
 
   }
 
-  return(
-    list(
-      lambda_draws = lambda_draws,
-      omega_draws = omega_draws,
-      kappa_draws = kappa_draws,
-      zi_draws = zi_draws,
-      n_pred_draws = n_pred_draws,
-      contin_table_long = table_long
+    return(
+    c(draws_list,
+      list(contin_table_long = table_long)
     )
 
   )

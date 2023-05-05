@@ -65,31 +65,27 @@ transformed parameters{
 
 model {
 
-  for (i in 1 : I){
-    for (j in 1 : J){
-      n[i, j] ~ neg_binomial ( alpha, beta[i, j] );
-    }
-  }
-
   alpha ~ cauchy(0,1);
   tau ~ cauchy(0,1);
 
   for (i in 1 : I){
     for (j in 1 : J){
-
+      n[i, j] ~ neg_binomial ( alpha, beta[i, j] );
       target += GH_lpdf(kappa[i, j] | 0.5, 0.5, tau*tau, 0.5);
-
     }
   }
+
 }
 
 generated quantities {
 
   array[I, J] real<lower=0> lambda;
+  array[I, J] int<lower=0> n_pred;
 
   for (i in 1 : I){
     for (j in 1 : J){
       lambda[i, j] = gamma_rng(n[i, j] + alpha, E[i, j] / (1-kappa_tilde[i, j]));
+      n_pred[i, j] = poisson_rng ( lambda[i, j] );
     }
   }
 

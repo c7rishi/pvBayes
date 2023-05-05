@@ -1,60 +1,51 @@
+// original version of poisson model with horseshoe piror.
 data {
 
   int<lower=0> I;
   int<lower=0> J;
   array[I, J] real<lower=0> E;
   array[I, J] int<lower=0> n;
-  //real<lower=0> gamma;
+
 }
 
-/*transformed data {
+transformed data {
 
-  array[I, J] real E_ratio;
+  array[I, J] real log_E = log(E);
 
-  for(i in 1 : I){
-    for(j in 1 : J){
-      E_ratio[i, j] = E[i, j]/(1+E[i, j]);
-    }
-  }
-
-}*/
+}
 
 parameters {
 
-  array[I, J] real<lower=0> lambda;
   real<lower=0> tau;
+  array[I, J] real<lower=0> log_lambda;
   array[I, J] real<lower=0> theta;
 
 }
 
 model {
 
-  array[I, J] real log_lambda;
-  log_lambda = log(lambda);
-
   for (i in 1 : I){
     for (j in 1 : J){
-      n[i, j] ~ poisson ( lambda[i, j] * E[i, j] );
+      theta[i, j] ~ cauchy (0, 1);
+      log_lambda[i, j] ~ normal ( 0, tau * theta[i, j] );
+      n[i, j] ~ poisson_log ( log_lambda[i, j] + log_E[i, j] );
     }
   }
 
   tau ~ cauchy(0, 1);
-
-  for (i in 1 : I){
-    for(j in 1 : J){
-      theta[i, j] ~ cauchy (0, 1);
-      log_lambda[i, j] ~ normal ( 0, tau * theta[i, j] );
-    }
-  }
 
 }
 
 generated quantities{
 
   array[I, J] int<lower=0> n_pred;
+  array[I, J] real<lower=0> lambda;
+
   for (i in 1 : I){
     for (j in 1 : J){
-      n_pred[i, j] = poisson_rng ( lambda[i, j] * E[i, j] );
+      n_pred[i, j] = poisson_log_rng ( log_lambda[i, j] + log_E[i, j] );
+      lambda[i, j] = exp(log_lambda[i, j]);
     }
   }
+
 }

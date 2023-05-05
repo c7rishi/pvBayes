@@ -18,8 +18,9 @@ transformed data {
 parameters {
 
   real<lower=0> tau;
+  real<lower = 0> sigma_indep;
   array[J] real<lower=0, upper=1> omega;
-  array[I, J] real log_lambda;
+  array[I, J] real log_mu;
   array[I, J] real<lower=0> theta;
 
 }
@@ -27,13 +28,14 @@ parameters {
 transformed parameters {
 
   array[I, J] real<lower=0> lambda;
+  array[I, J] real log_lambda;
 
-  for (j in 1 : J){
-    for (i in 1 : I){
+  for (i in 1 : I){
+    for (j in 1 :J ){
+      log_lambda[i,j] = log_mu[i,j] - log_E[i,j];
       lambda[i, j] = exp(log_lambda[i, j]);
     }
   }
-
 
 }
 
@@ -41,23 +43,24 @@ model {
 
   tau ~ cauchy(0, 1);
   omega ~ beta(0.5, 0.5); //Jeffrey's prior
+  sigma_indep ~ cauchy(0, 1);
 
   for (i in 1 : I) {
     for (j in 1 : J) {
 
       theta[i,j] ~ cauchy (0, 1);
-      log_lambda[i,j] ~ normal ( 0, tau * theta[i,j] );
+      log_mu[i, j] ~ normal ( log_E[i, j], sqrt(sigma_indep^2 + tau^2 * theta[i, j]^2) );
 
       if (n[i, j] == 0) {
 
         target += log_sum_exp(bernoulli_lpmf(1 | omega[j]),
         bernoulli_lpmf(0 | omega[j])
-        + poisson_lpmf(0 | lambda[i, j] * E[i, j] ) );
+        + poisson_log_lpmf(0 | log_mu[i, j] ) );
 
       } else {
 
         target += bernoulli_lpmf(0 | omega[j])
-        + poisson_lpmf(n[i, j] | lambda[i, j] * E[i, j] );
+        + poisson_log_lpmf(n[i, j] | log_mu[i, j] );
 
       }
 
@@ -74,7 +77,7 @@ generated quantities {
   for (j in 1 : J){
     for (i in 1 : I){
 
-      n_pred[i, j] = poisson_log_rng ( log_lambda[i, j] + log_E[i, j] );
+      n_pred[i, j] = poisson_log_rng ( log_mu[i, j] );
 
       if (n[i, j] == 0) {
 
