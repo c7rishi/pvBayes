@@ -1,8 +1,11 @@
 #' Basis function for transform MCMC samples to rvar object
 #' @importFrom data.table :=
 #' @importFrom data.table %like%
+#' @param obj a stan object produced by "pvbayes"
+#' @param ... additional parameters
+#' @export
 
-stan_output_to_rvar <- function(obj,...){
+stan_output_to_rvar <- function(obj, ...){
 
   #posterior
   stan_samps <- obj$lambda_draws

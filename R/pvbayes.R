@@ -11,19 +11,21 @@
 #' @param stan_seed A seed for the (P)RNG to pass to CmdStan.
 #' @param stan_chains The number of Markov chains to run in CmdStan. The default is 2.
 #' @param stan_parallel_chains The maximum number of MCMC chains to run in parallel in CmdStan.
+#' @param ... additional parameters
 #' @returns
 #' \itemize{
 #'   \item lambda_draws - A tibble contain the MCMC samples for each poisson rate parameter.
 #'   \item contin_table_long - The converted contingency table in long format tibble.
 #' }
 #' @examples
+#' \dontrun{
 #' library(pvLRT)
 #' data(statin46)
 #' mod <- pvbayes(contin_table = statin46, model = "horseshoe")
 #'
 #' #obtain the MCMC samples
 #' mod$lambda_draws
-#'
+#' }
 #' @export
 pvbayes <- function(contin_table,
                     model = "horseshoe",

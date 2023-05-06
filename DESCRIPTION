@@ -28,6 +28,7 @@ Imports:
     glue,
     magrittr,
     methods,
+    posterior,
     Rcpp,
     stats,
     utils

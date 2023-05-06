@@ -12,6 +12,7 @@
 #'   \item BayesTIE - Bayesian type-I error
 #' }
 #' @examples
+#' \dontrun{
 #' library(pvLRT)
 #' data(statin46)
 #' mod <- pvbayes(contin_table = statin46, model = "horseshoe")
@@ -23,7 +24,7 @@
 #'
 #' # K is specified
 #' pFDR(par_draws = mod$lambda_draws, par_est = est, optim = FALSE, k = 1.1)
-#'
+#' }
 #' @export
 pFDR <- function(par_draws,
                  par_est,
@@ -44,7 +45,7 @@ pFDR <- function(par_draws,
   if (optim == TRUE){
 
     k.optim <-
-      uniroot(temp,
+      stats::uniroot(temp,
               interval = c(0,max(par_est))
       )$root
 

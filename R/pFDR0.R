@@ -1,6 +1,7 @@
 #' Basis function for computing pFDR
 #' @importFrom data.table :=
 #' @importFrom data.table %like%
+#' @noRd
 pFDR0 <- function(par_draws,
                   par_est,
                   optim = FALSE,
@@ -34,4 +35,6 @@ pFDR0 <- function(par_draws,
   )
 
 }
+
+utils::globalVariables(c("."))
 

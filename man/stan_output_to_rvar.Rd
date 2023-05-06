@@ -6,6 +6,11 @@
 \usage{
 stan_output_to_rvar(obj, ...)
 }
+\arguments{
+\item{obj}{a stan object produced by "pvbayes"}
+
+\item{...}{additional parameters}
+}
 \description{
 Basis function for transform MCMC samples to rvar object
 }

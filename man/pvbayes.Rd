@@ -30,6 +30,8 @@ pvbayes(
 \item{stan_chains}{The number of Markov chains to run in CmdStan. The default is 2.}
 
 \item{stan_parallel_chains}{The maximum number of MCMC chains to run in parallel in CmdStan.}
+
+\item{...}{additional parameters}
 }
 \value{
 \itemize{
@@ -41,11 +43,12 @@ pvbayes(
 Fitting Poisson model with Bayesian methods for pharmacovigilance
 }
 \examples{
+\dontrun{
 library(pvLRT)
 data(statin46)
 mod <- pvbayes(contin_table = statin46, model = "horseshoe")
 
 #obtain the MCMC samples
 mod$lambda_draws
-
+}
 }

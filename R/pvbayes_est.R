@@ -10,6 +10,7 @@
 #'   \item BayesTIE - Bayesian type-I error
 #' }
 #' @examples
+#' \dontrun{
 #' library(pvLRT)
 #' data(statin46)
 #' mod <- pvbayes(contin_table = statin46, model = "horseshoe")
@@ -18,7 +19,7 @@
 #' mod$lambda_draws
 #'
 #' pvbayes_est(mod$lambda_draws, .5)
-#'
+#'}
 #' @export
 pvbayes_est <- function(lambda_draws,
                         est_quantile,
@@ -26,7 +27,7 @@ pvbayes_est <- function(lambda_draws,
 
   lambda_est <-
     lambda_draws %>%
-    apply(2, function(x)quantile(x,est_quantile))
+    apply(2, function(x)stats::quantile(x,est_quantile))
 
   res <-
     pFDR(par_draws = lambda_draws,

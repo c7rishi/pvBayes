@@ -25,6 +25,7 @@ pvbayes_est(lambda_draws, est_quantile, alpha = 0.05)
 Bayes estimate using MCMC samples
 }
 \examples{
+\dontrun{
 library(pvLRT)
 data(statin46)
 mod <- pvbayes(contin_table = statin46, model = "horseshoe")
@@ -33,5 +34,5 @@ mod <- pvbayes(contin_table = statin46, model = "horseshoe")
 mod$lambda_draws
 
 pvbayes_est(mod$lambda_draws, .5)
-
+}
 }
