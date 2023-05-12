@@ -170,21 +170,21 @@ pvbayes <- function(contin_table,
       silent=TRUE)
 
     if (inherits(temp, "try-error")) {
-      draws_list[[paste0( par_vec[k],"_draws")]] <- NULL
-      #assign(paste0( par_vec[k],"_draws"), NULL)
+      draws_list[[par_vec[k]]] <- NULL
     } else{
-      draws_list[[paste0( par_vec[k],"_draws")]] <- temp
-      #assign(paste0( par_vec[k],"_draws"), temp)
+      draws_list[[par_vec[k]]] <- temp
     }
 
   }
 
-    return(
-    c(draws_list,
-      list(contin_table_long = table_long)
+  return(
+    list(
+      draws = draws_list,
+      contin_table_long = table_long
     )
-
   )
+
+
 
 
 }

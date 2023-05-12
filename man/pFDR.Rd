@@ -7,15 +7,15 @@
 pFDR(par_draws, par_est, optim = TRUE, alpha = 0.05, k = NULL)
 }
 \arguments{
-\item{par_draws}{MCMC samples obtianed from \code{pvbayes}}
-
-\item{par_est}{Bayesian estimates}
-
 \item{optim}{logical. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, if FALSE then k must be specified}
 
 \item{alpha}{Confidence level s.t. pFDR(k)=alpha}
 
 \item{k}{Critical value}
+
+\item{lambda_draws}{MCMC samples obtianed from \code{pvbayes}}
+
+\item{lambda_est}{Bayesian estimates}
 }
 \value{
 \itemize{

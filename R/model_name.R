@@ -1,5 +1,7 @@
 #' Obtain model names
 #'
+#' @noRd
+#' @export
 model_name <- function(){
 
   stan_source_files <- system.file("stan/", package = "pvBayes") %>%
