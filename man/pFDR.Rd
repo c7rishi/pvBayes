@@ -4,7 +4,7 @@
 \alias{pFDR}
 \title{Compute pFDR}
 \usage{
-pFDR(par_draws, par_est, optim = TRUE, alpha = 0.05, k = NULL)
+pFDR(lambda_draws, lambda_est, optim = TRUE, alpha = 0.05, k = NULL)
 }
 \arguments{
 \item{optim}{logical. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, if FALSE then k must be specified}
@@ -13,9 +13,9 @@ pFDR(par_draws, par_est, optim = TRUE, alpha = 0.05, k = NULL)
 
 \item{k}{Critical value}
 
-\item{lambda_draws}{MCMC samples obtianed from \code{pvbayes}}
+\item{par_draws}{MCMC samples obtianed from \code{pvbayes}}
 
-\item{lambda_est}{Bayesian estimates}
+\item{par_est}{Bayesian estimates}
 }
 \value{
 \itemize{

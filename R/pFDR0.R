@@ -2,25 +2,19 @@
 #' @importFrom data.table :=
 #' @importFrom data.table %like%
 #' @noRd
-pFDR0 <- function(par_draws,
-                  par_est,
-                  optim = FALSE,
-                  alpha = NULL,
-                  k){
+pFDR0 <- function(lambda_draws,
+                   lambda_est,
+                   optim = FALSE,
+                   alpha = NULL,
+                   k){
 
-  par_name <- sub("\\[.*", "", names(par_est)[1])
+  BayesTIE <- lambda_draws %>%
+    posterior::as_draws_rvars() %>%
+    .$lambda %>%
+    {posterior::Pr(. <= 1)} %>%
+    {ifelse( lambda_est>k, ., 1)}
 
-  Pr <-
-    par_draws %>%
-    apply(2, function(x) mean( x<=1 ) ) %>%
-    mapply( function(x, y) ifelse( y>k, x, 1), ., par_est) %>%
-    data.table::as.data.table(keep.rownames=TRUE) %>%
-    data.table::setnames(old = c("rn", "."),
-                         new = c(par_name,"BayesTIE")) %>%
-    {.[ , Est := par_est]}
-
-  pFDR <-
-    Pr$BayesTIE %>%
+  pFDR <- BayesTIE %>%
     {.[.<1]} %>%
     mean() %>%
     {ifelse( is.na(.), 0, .)}
@@ -30,7 +24,8 @@ pFDR0 <- function(par_draws,
       k = k,
       optim = optim,
       pFDR = pFDR,
-      BayesTIE = Pr
+      lambda_est = lambda_est,
+      BayesTIE = BayesTIE
     )
   )
 

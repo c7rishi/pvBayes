@@ -22,18 +22,19 @@
 #'}
 #' @export
 pvbayes_est <- function(lambda_draws,
-                        est_quantile,
-                        alpha = .05){
+                         est_quantile,
+                         alpha = .05){
 
-  lambda_est <-
-    lambda_draws %>%
-    apply(2, function(x)stats::quantile(x,est_quantile))
+  lambda_est <- lambda_draws %>%
+    posterior::as_draws_rvars() %>%
+    .$lambda %>%
+    posterior::quantile2(est_quantile)
 
   res <-
-    pFDR(par_draws = lambda_draws,
-         par_est =  lambda_est,
-         optim = TRUE,
-         alpha = alpha)
+    pFDR(lambda_draws = lambda_draws,
+          lambda_est =  lambda_est,
+          optim = TRUE,
+          alpha = alpha)
 
   return(
     res

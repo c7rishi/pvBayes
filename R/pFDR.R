@@ -1,6 +1,6 @@
 #' Compute pFDR
-#' @param lambda_draws MCMC samples obtianed from `pvbayes`
-#' @param lambda_est Bayesian estimates
+#' @param par_draws MCMC samples obtianed from `pvbayes`
+#' @param par_est Bayesian estimates
 #' @param optim logical. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, if FALSE then k must be specified
 #' @param alpha Confidence level s.t. pFDR(k)=alpha
 #' @param k Critical value
@@ -26,16 +26,17 @@
 #' pFDR(par_draws = mod$lambda_draws, par_est = est, optim = FALSE, k = 1.1)
 #' }
 #' @export
-pFDR <- function(par_draws,
-                 par_est,
+pFDR <- function(lambda_draws,
+                 lambda_est,
                  optim = TRUE,
                  alpha = .05,
                  k = NULL){
 
+
   temp <- function(x){
 
-    res <- pFDR0(par_draws = par_draws,
-                 par_est = par_est,
+    res <- pFDR0(lambda_draws = lambda_draws,
+                 lambda_est = lambda_est,
                  k = x)$pFDR - alpha
 
     return(res)
@@ -49,14 +50,13 @@ pFDR <- function(par_draws,
                       interval = c(0,max(par_est))
       )$root},
       error = function(e){
-        max(par_est)
+        max(lambda_est)
       }
     )
 
-
     return(
-      pFDR0(par_draws = par_draws,
-            par_est = par_est,
+      pFDR0(lambda_draws = lambda_draws,
+            lambda_est = lambda_est,
             optim = TRUE,
             k = k.optim)
     )
@@ -66,8 +66,8 @@ pFDR <- function(par_draws,
     if (is.null(k)){ stop("k must be specified!") }
 
     return(
-      pFDR0(par_draws = par_draws,
-            par_est = par_est,
+      pFDR0(lambda_draws = lambda_draws,
+            lambda_est = lambda_est,
             optim = FALSE,
             k = k)
     )
