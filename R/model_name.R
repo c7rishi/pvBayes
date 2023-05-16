@@ -1,6 +1,5 @@
 #' Obtain model names
 #'
-#' @noRd
 #' @export
 model_name <- function(){
 

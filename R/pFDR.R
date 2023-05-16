@@ -1,6 +1,6 @@
 #' Compute pFDR
-#' @param par_draws MCMC samples obtianed from `pvbayes`
-#' @param par_est Bayesian estimates
+#' @param lambda_draws MCMC samples obtianed from `pvbayes`
+#' @param lambda_est Bayesian estimates
 #' @param optim logical. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, if FALSE then k must be specified
 #' @param alpha Confidence level s.t. pFDR(k)=alpha
 #' @param k Critical value

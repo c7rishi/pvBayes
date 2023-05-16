@@ -28,11 +28,5 @@ Bayes estimate using MCMC samples
 \dontrun{
 library(pvLRT)
 data(statin46)
-mod <- pvbayes(contin_table = statin46, model = "horseshoe")
-
-#obtain the MCMC samples
-mod$lambda_draws
-
-pvbayes_est(mod$lambda_draws, .5)
 }
 }

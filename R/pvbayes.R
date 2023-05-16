@@ -61,7 +61,6 @@ pvbayes <- function(contin_table,
 
   }
 
-
   I <- nrow(contin_table)
   J <- ncol(contin_table)
   name.c <- colnames(contin_table)
@@ -90,54 +89,6 @@ pvbayes <- function(contin_table,
   table_E <- contin_table %>%
     {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
 
-  lambda_txt <- matrix(NA, I, J, dimnames = list(name.r, name.c))
-  for (i in 1:I) {
-    for (j in 1:J) {
-      lambda_txt[i, j] <- glue::glue("lambda[{i},{j}]")
-    }
-  }
-
-  table_long_txt <- lambda_txt %>%
-    `colnames<-`(name.c) %>%
-    data.table::as.data.table() %>%
-    {.[ , AE :=  name.r]} %>%
-    data.table::melt(id.vars = c("AE"),
-                     measure.vars = name.c[name.c != "AE"],
-                     variable.name = "Drug", value.name = "lambda") %>%
-    data.table::setkey(Drug, AE)
-
-  table_long_E <- table_E %>%
-    `colnames<-`(name.c) %>%
-    data.table::as.data.table() %>%
-    {.[ , AE :=  name.r]} %>%
-    data.table::melt(id.vars = c("AE"),
-                     measure.vars = name.c[name.c != "AE"],
-                     variable.name = "Drug", value.name = "E") %>%
-    data.table::setkey(Drug, AE)
-
-  table_long <- contin_table %>%
-    data.table::as.data.table() %>%
-    {.[ , AE :=  name.r]}  %>%
-    data.table::melt(id.vars = c("AE"),
-                     measure.vars = name.c[name.c != "AE"],
-                     variable.name = "Drug", value.name = "Count") %>%
-    data.table::setkey(Drug, AE) %>%
-    merge(table_long_E) %>%
-    merge(table_long_txt)
-
-
-  # table_long_txt <- lambda_txt[, AE := name.r][, melt(.SD, id.vars = "AE",
-  #                                                     measure.vars = name.c[name.c != "AE"], variable.name = "Drug",
-  #                                                     value.name = "lambda"), keyby = .(Drug, AE)]
-  #
-  # table_long_E <- table_E[, AE := name.r][, melt(.SD, id.vars = "AE",
-  #                                                measure.vars = name.c[name.c != "AE"], variable.name = "Drug",
-  #                                                value.name = "E"), keyby = .(Drug, AE)]
-  #
-  # table_long <- contin_table[, AE := name.r][, melt(.SD, id.vars = "AE",
-  #                                                   measure.vars = name.c[name.c != "AE"], variable.name = "Drug",
-  #                                                   value.name = "Count"), keyby = .(Drug, AE)][table_long_E][table_long_txt]
-
   stan_data = list(
     I = I,
     J = J,
@@ -162,29 +113,28 @@ pvbayes <- function(contin_table,
 
   for (k in 1:length(par_vec)){
 
-    temp <- try(
-      {mod.fit$draws(format = "df", variables = par_vec[k]) %>%
-          data.table::as.data.table()%>%
-          {.[,.SD, .SDcols = .[, grepl(paste0("^", par_vec[k]), colnames(.))]]}
+    draws_list[[par_vec[k]]] <- tryCatch(
+      {mod.fit$draws(format = "draws_matrix", variables = par_vec[k]) %>%
+          posterior::as_draws_rvars() %>%
+          .[[par_vec[k]]]
       },
-      silent=TRUE)
+      error = function(e){
+        NULL
+      }
+    )
 
-    if (inherits(temp, "try-error")) {
-      draws_list[[par_vec[k]]] <- NULL
-    } else{
-      draws_list[[par_vec[k]]] <- temp
+    if ( identical(dim(draws_list[[par_vec[k]]]), c(I, J)) ) {
+      dimnames(draws_list[[par_vec[k]]]) <- list(name.r, name.c)
     }
 
   }
 
   return(
     list(
-      draws = draws_list,
-      contin_table_long = table_long
+      E = table_E,
+      draws = draws_list
     )
   )
-
-
 
 
 }
