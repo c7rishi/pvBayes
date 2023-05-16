@@ -100,7 +100,8 @@ pvbayes <- function(contin_table,
     data = c(stan_data, additional_var),
     seed = stan_seed,
     chains = stan_chains,
-    parallel_chains = stan_parallel_chains
+    parallel_chains = stan_parallel_chains,
+    refresh = 500
   )
 
   par_vec <- c("lambda",
@@ -113,7 +114,7 @@ pvbayes <- function(contin_table,
 
   for (k in 1:length(par_vec)){
 
-    draws_list[[par_vec[k]]] <- tryCatch(
+    temp <- tryCatch(
       {mod.fit$draws(format = "draws_matrix", variables = par_vec[k]) %>%
           posterior::as_draws_rvars() %>%
           .[[par_vec[k]]]
@@ -123,11 +124,19 @@ pvbayes <- function(contin_table,
       }
     )
 
-    if ( identical(dim(draws_list[[par_vec[k]]]), c(I, J)) ) {
-      dimnames(draws_list[[par_vec[k]]]) <- list(name.r, name.c)
+    if (is.null(temp)) {next}
+
+    if ( length(dim(temp)) == 1) {
+      names(temp) <-  name.c
+    } else{
+      dimnames(temp) <- list(name.r, name.c)
     }
 
+    draws_list[[par_vec[k]]] <- temp
+
   }
+
+
 
   return(
     list(
