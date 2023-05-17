@@ -3,19 +3,19 @@
 #' @importFrom data.table %like%
 #' @noRd
 pFDR0 <- function(lambda_draws,
-                   lambda_est,
-                   optim = FALSE,
-                   alpha = NULL,
-                   k){
+                  test_stat,
+                  optim = FALSE,
+                  alpha = NULL,
+                  k){
 
-  BayesTIE <- lambda_draws %>%
-    posterior::as_draws_rvars() %>%
-    .$lambda %>%
-    {posterior::Pr(. <= 1)} %>%
-    {ifelse( lambda_est>k, ., 1)}
+  lambda_s1 <- lambda_draws  %>%
+    {posterior::Pr(. <= 1)}
 
-  pFDR <- BayesTIE %>%
-    {.[.<1]} %>%
+  BayesTIE <- lambda_s1 %>%
+    {ifelse( test_stat > k, ., 1)}
+
+  pFDR <- lambda_s1 %>%
+    .[test_stat > k] %>%
     mean() %>%
     {ifelse( is.na(.), 0, .)}
 
@@ -24,7 +24,7 @@ pFDR0 <- function(lambda_draws,
       k = k,
       optim = optim,
       pFDR = pFDR,
-      lambda_est = lambda_est,
+      test_stat = test_stat,
       BayesTIE = BayesTIE
     )
   )

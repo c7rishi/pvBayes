@@ -1,6 +1,6 @@
 #' Bayes estimate using MCMC samples
 #' @param lambda_draws MCMC samples obtianed from `pvbayes`
-#' @param est_quantile Bayesian estimates using pth-quantile of the MCMC samples
+#' @param test_method The choice of test statistic based on posterior distribution
 #' @param alpha Confidence level s.t. pFDR(k)=alpha
 #' @returns
 #' \itemize{
@@ -17,23 +17,46 @@
 #'}
 #' @export
 pvbayes_est <- function(lambda_draws,
-                         est_quantile,
-                         alpha = .05){
+                        test_method = "mean",
+                        prob = NULL,
+                        alpha = .05){
 
-  lambda_est <- lambda_draws %>%
-    posterior::as_draws_rvars() %>%
-    .$lambda %>%
-    posterior::quantile2(est_quantile)
+  lambda_est <- test_method %>%
+    {
+      if (. == "mean") {
+        lambda_draws %>% mean()
+      } else if (. == "median") {
+        lambda_draws %>% median()
+      } else if (. == "quantile") {
+        if (is.null(prob)) {stop("Probability must be specified!")}
+        lambda_draws %>%  posterior::quantile2(prob)
+      }
+    }
 
   res <-
     pFDR(lambda_draws = lambda_draws,
-          lambda_est =  lambda_est,
-          optim = TRUE,
-          alpha = alpha)
+         test_stat =  lambda_est,
+         optim = TRUE,
+         alpha = alpha)
+
+  #browser()
+
+  sig_naive <- lambda_draws %>%
+    posterior::quantile2(0.05) %>%
+    {ifelse( .> 1, 1, 0)}
+
+  sig_pfdr <- lambda_est %>%
+    {ifelse( .> res$k, 1, 0)}
 
   return(
-    res
+    c(
+      res,
+      list(
+        sig_pfdr = sig_pfdr,
+        sig_naive = sig_naive
+      )
+    )
+
   )
 
 }
-

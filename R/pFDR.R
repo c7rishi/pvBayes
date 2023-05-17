@@ -1,6 +1,6 @@
 #' Compute pFDR
 #' @param lambda_draws MCMC samples obtianed from `pvbayes`
-#' @param lambda_est Bayesian estimates
+#' @param test_stat Bayesian estimates
 #' @param optim logical. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, if FALSE then k must be specified
 #' @param alpha Confidence level s.t. pFDR(k)=alpha
 #' @param k Critical value
@@ -15,19 +15,10 @@
 #' \dontrun{
 #' library(pvLRT)
 #' data(statin46)
-#' mod <- pvbayes(contin_table = statin46, model = "horseshoe")
-#'
-#' est <- lambda_draws %>% apply(2, median)
-#'
-#' # K is optimized
-#' pFDR(par_draws = mod$lambda_draws, par_est = est)
-#'
-#' # K is specified
-#' pFDR(par_draws = mod$lambda_draws, par_est = est, optim = FALSE, k = 1.1)
 #' }
 #' @export
 pFDR <- function(lambda_draws,
-                 lambda_est,
+                 test_stat,
                  optim = TRUE,
                  alpha = .05,
                  k = NULL){
@@ -36,46 +27,43 @@ pFDR <- function(lambda_draws,
   temp <- function(x){
 
     res <- pFDR0(lambda_draws = lambda_draws,
-                 lambda_est = lambda_est,
+                 test_stat = test_stat,
                  k = x)$pFDR - alpha
 
     return(res)
 
   }
 
+  # browser()
+  #
+  # temp(max(test_stat)) +.05
+  # temp(0.0000) + .05
+
   if (optim == TRUE){
 
     k.optim <- tryCatch(
       {stats::uniroot(temp,
-                      interval = c(0,max(par_est))
+                      interval = c(0, max(test_stat))
       )$root},
       error = function(e){
-        max(lambda_est)
+        max(test_stat)
       }
-    )
-
-    return(
-      pFDR0(lambda_draws = lambda_draws,
-            lambda_est = lambda_est,
-            optim = TRUE,
-            k = k.optim)
     )
 
   } else {
 
     if (is.null(k)){ stop("k must be specified!") }
 
-    return(
-      pFDR0(lambda_draws = lambda_draws,
-            lambda_est = lambda_est,
-            optim = FALSE,
-            k = k)
-    )
+    k.optim <- k
 
   }
 
-
-
+  return(
+    pFDR0(lambda_draws = lambda_draws,
+          test_stat = test_stat,
+          optim = optim,
+          k = k.optim)
+  )
 
 }
 

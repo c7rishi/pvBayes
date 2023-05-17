@@ -4,12 +4,12 @@
 \alias{pFDR}
 \title{Compute pFDR}
 \usage{
-pFDR(lambda_draws, lambda_est, optim = TRUE, alpha = 0.05, k = NULL)
+pFDR(lambda_draws, test_stat, optim = TRUE, alpha = 0.05, k = NULL)
 }
 \arguments{
 \item{lambda_draws}{MCMC samples obtianed from \code{pvbayes}}
 
-\item{lambda_est}{Bayesian estimates}
+\item{test_stat}{Bayesian estimates}
 
 \item{optim}{logical. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, if FALSE then k must be specified}
 
@@ -32,14 +32,5 @@ Compute pFDR
 \dontrun{
 library(pvLRT)
 data(statin46)
-mod <- pvbayes(contin_table = statin46, model = "horseshoe")
-
-est <- lambda_draws \%>\% apply(2, median)
-
-# K is optimized
-pFDR(par_draws = mod$lambda_draws, par_est = est)
-
-# K is specified
-pFDR(par_draws = mod$lambda_draws, par_est = est, optim = FALSE, k = 1.1)
 }
 }

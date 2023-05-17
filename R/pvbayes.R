@@ -31,8 +31,8 @@ pvbayes <- function(contin_table,
                     model = "horseshoe",
                     stan_obj = NULL,
                     stan_seed = 123,
-                    stan_chains = 2,
-                    stan_parallel_chains = 2,
+                    stan_chains = 4,
+                    stan_parallel_chains = 4,
                     ...){
 
   #find compiled model
@@ -135,8 +135,6 @@ pvbayes <- function(contin_table,
     draws_list[[par_vec[k]]] <- temp
 
   }
-
-
 
   return(
     list(

@@ -4,12 +4,12 @@
 \alias{pvbayes_est}
 \title{Bayes estimate using MCMC samples}
 \usage{
-pvbayes_est(lambda_draws, est_quantile, alpha = 0.05)
+pvbayes_est(lambda_draws, test_method = "mean", prob = NULL, alpha = 0.05)
 }
 \arguments{
 \item{lambda_draws}{MCMC samples obtianed from \code{pvbayes}}
 
-\item{est_quantile}{Bayesian estimates using pth-quantile of the MCMC samples}
+\item{test_method}{The choice of test statistic based on posterior distribution}
 
 \item{alpha}{Confidence level s.t. pFDR(k)=alpha}
 }
