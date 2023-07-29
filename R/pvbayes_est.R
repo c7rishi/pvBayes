@@ -17,42 +17,25 @@
 #'}
 #' @export
 pvbayes_est <- function(lambda_draws,
-                        test_method = "mean",
+                        test_stat,
                         prob = NULL,
-                        alpha = .05){
-
-  lambda_est <- test_method %>%
-    {
-      if (. == "mean") {
-        lambda_draws %>% mean()
-      } else if (. == "median") {
-        lambda_draws %>% median()
-      } else if (. == "quantile") {
-        if (is.null(prob)) {stop("Probability must be specified!")}
-        lambda_draws %>%  posterior::quantile2(prob)
-      }
-    }
+                        alpha = .05,
+                        ...){
 
   res <-
     pFDR(lambda_draws = lambda_draws,
-         test_stat =  lambda_est,
+         test_stat =  test_stat,
          optim = TRUE,
          alpha = alpha)
-
-  #browser()
 
   sig_naive <- lambda_draws %>%
     posterior::quantile2(0.05) %>%
     {ifelse( .> 1, 1, 0)}
 
-  sig_pfdr <- lambda_est %>%
-    {ifelse( .> res$k, 1, 0)}
-
   return(
     c(
       res,
       list(
-        sig_pfdr = sig_pfdr,
         sig_naive = sig_naive
       )
     )

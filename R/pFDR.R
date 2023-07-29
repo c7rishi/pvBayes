@@ -34,21 +34,21 @@ pFDR <- function(lambda_draws,
 
   }
 
-  # browser()
-  #
-  # temp(max(test_stat)) +.05
-  # temp(0.0000) + .05
+  range_test_stat <- pFDR0(lambda_draws = lambda_draws,
+                           test_stat = test_stat,
+                           k = 1)$range_test_stat
 
   if (optim == TRUE){
 
     k.optim <- tryCatch(
-      {stats::uniroot(temp,
-                      interval = c(0, max(test_stat))
+      {stats::uniroot(
+        temp,
+        interval = range_test_stat
       )$root},
       error = function(e){
-        max(test_stat)
+        range_test_stat[2]
       }
-    )
+      )
 
   } else {
 
