@@ -11,7 +11,6 @@ pFDR0 <- function(lambda_draws,
   # test_stat is an user-defined function to calculate the
   # test statistic (critical value).
 
-  # browser()
 
   tmp_draws <- posterior::as_draws_df(lambda_draws) %>%
     data.table::setDT() %>%
@@ -33,14 +32,11 @@ pFDR0 <- function(lambda_draws,
   # add new col named obs_test_stat
   # computed by the test_stat function, referenced by 'value'
 
-  tmp_test_stat_long <- tmp_draws[
+  test_stat_mat <- tmp_draws[
     ,
     .(parameter, obs_test_stat)
   ] %>% # select columns
-    unique() # delete duplicate columns by AE-drug names
-
-
-  test_stat_mat <- tmp_test_stat_long %>%
+    unique() %>% # delete duplicate columns by AE-drug names
     {.[
       ,
       nm_AE_Drug := parameter %>% # extract AE and Drug into a vector of chr
@@ -58,7 +54,11 @@ pFDR0 <- function(lambda_draws,
     data.table::dcast.data.table( # reshape to wide format
       AE ~ Drug,
       value.var = "obs_test_stat"
-    ) %>%
+    ) %>% # the rownames and colnames were disordered, fixed by adding the following two pipe
+    {.[
+     order(match(AE,rownames(lambda_draws)))
+    ] } %>%
+    data.table::setcolorder(.,c("AE", colnames(lambda_draws))) %>%
     {
       rn <- .$AE
       tmp_dt <- .
@@ -68,7 +68,11 @@ pFDR0 <- function(lambda_draws,
         as.matrix()
     }
 
-  signal_mat <- tmp_test_stat_long %>%
+  signal_mat <- tmp_draws[
+    ,
+    .(parameter, obs_test_stat)
+  ] %>% # select columns
+    unique() %>%
     .[, signal := as.numeric(obs_test_stat > k)] %>% # greater than k is a signal
     .[, obs_test_stat := NULL] %>% # remove obs_test_stat
     {.[
@@ -89,7 +93,11 @@ pFDR0 <- function(lambda_draws,
       AE ~ Drug,
       value.var = "signal",
       fill = 0 # fill NA with 0
-    ) %>%
+    ) %>% # the rownames and colnames were disordered, fixed by adding the following two pipe
+    {.[
+      order(match(AE,rownames(lambda_draws)))
+    ] } %>%
+    data.table::setcolorder(.,c("AE", colnames(lambda_draws)))%>%
     {
       rn <- .$AE
       tmp_dt <- .

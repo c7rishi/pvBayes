@@ -22,6 +22,7 @@ pvbayes_est <- function(lambda_draws,
                         alpha = .05,
                         ...){
 
+
   res <-
     pFDR(lambda_draws = lambda_draws,
          test_stat =  test_stat,
