@@ -11,7 +11,6 @@ pFDR0 <- function(lambda_draws,
   # test_stat is an user-defined function to calculate the
   # test statistic (critical value).
 
-
   tmp_draws <- posterior::as_draws_df(lambda_draws) %>%
     data.table::setDT() %>%
     data.table::melt(
@@ -32,11 +31,12 @@ pFDR0 <- function(lambda_draws,
   # add new col named obs_test_stat
   # computed by the test_stat function, referenced by 'value'
 
+
   test_stat_mat <- tmp_draws[
     ,
     .(parameter, obs_test_stat)
   ] %>% # select columns
-    unique() %>% # delete duplicate columns by AE-drug names
+    unique() %>% # delete duplicate rows by AE-drug names
     {.[
       ,
       nm_AE_Drug := parameter %>% # extract AE and Drug into a vector of chr
@@ -46,6 +46,7 @@ pFDR0 <- function(lambda_draws,
     ][,
       `:=`( # the first element is AE and the second one is Drug
         AE = vapply(nm_AE_Drug, function(x) x[1], "name"),
+        # %>% factor(levels = row.names()),
         Drug = vapply(nm_AE_Drug, function(x) x[2], "name")
       ) # add two new columns AE and Drug
     ][,
@@ -68,12 +69,12 @@ pFDR0 <- function(lambda_draws,
         as.matrix()
     }
 
-  signal_mat <- tmp_draws[
+  dscov_mat <- tmp_draws[
     ,
     .(parameter, obs_test_stat)
   ] %>% # select columns
     unique() %>%
-    .[, signal := as.numeric(obs_test_stat > k)] %>% # greater than k is a signal
+    .[, dscov := as.numeric(obs_test_stat > k)] %>% # greater than k is a dscov
     .[, obs_test_stat := NULL] %>% # remove obs_test_stat
     {.[
       ,
@@ -87,11 +88,11 @@ pFDR0 <- function(lambda_draws,
         Drug = vapply(nm_AE_Drug, function(x) x[2], "name")
       ) # add two new columns AE and Drug
     ][,
-      .(AE, Drug, signal) # table with signal 0 or 1
+      .(AE, Drug, dscov) # table with dscov 0 or 1
     ]} %>%
     data.table::dcast.data.table( # reshape to wide format
       AE ~ Drug,
-      value.var = "signal",
+      value.var = "dscov",
       fill = 0 # fill NA with 0
     ) %>% # the rownames and colnames were disordered, fixed by adding the following two pipe
     {.[
@@ -106,12 +107,12 @@ pFDR0 <- function(lambda_draws,
         magrittr::set_rownames(rn) %>%
         as.matrix()
     }
-  # generate the signal matrix with names
+  # generate the dscov matrix with names
 
   range_test_stat <- range(tmp_draws$obs_test_stat)
 
   tmp_prob_null_mat_full <- matrix(
-    0,
+    NA,
     nrow(lambda_draws),
     ncol(lambda_draws),
     dimnames = dimnames(lambda_draws)
@@ -125,7 +126,7 @@ pFDR0 <- function(lambda_draws,
 
   tmp_prob_null_mat_sub <- tmp_prob_null_reject_sub_dt %>%
     {
-      if (nrow(.) > 1) {
+      if (nrow(.) >= 1) {
         tmp_in <- .
         tmp_in[
           ,
@@ -144,7 +145,7 @@ pFDR0 <- function(lambda_draws,
           data.table::dcast.data.table(
             AE ~ Drug,
             value.var = "prob_null",
-            fill = 0
+            fill = NA
           ) %>%
           {
             rn <- .$AE
@@ -155,7 +156,7 @@ pFDR0 <- function(lambda_draws,
               as.matrix()
           }
       } else {
-        matrix(0, nrow = 0, ncol = 0)
+        matrix(NA, nrow = 0, ncol = 0)
       }
     }
   # a matrix with Bayes TIE, those non-rejected cells
@@ -168,9 +169,10 @@ pFDR0 <- function(lambda_draws,
   # table for output
 
   pFDR <- ifelse(
-    nrow(tmp_prob_null_reject_sub_dt) > 1,
-    mean(tmp_prob_null_reject_sub_dt$prob_null),
-    0
+    nrow(tmp_prob_null_reject_sub_dt) >= 1,
+    mean(tmp_prob_null_reject_sub_dt$prob_null,
+         na.rm = TRUE),
+    NA
   )
 
   # lambda_s1 <- lambda_draws  %>%
@@ -198,11 +200,11 @@ pFDR0 <- function(lambda_draws,
       test_stat = test_stat_mat,
       BayesTIE = tmp_prob_null_mat_full,
       range_test_stat = range_test_stat,
-      sig_pfdr = signal_mat
+      sig_pfdr = dscov_mat
     )
   )
   # The output contains a matrix of Bayes type-I-error,
-  # a matrix of signal (0 or 1).
+  # a matrix of dscov (0 or 1).
   # To simplify this function, these two results must be
   # included. I think using the posterior package can simplify
   # this function and make it more readable. I will do it in

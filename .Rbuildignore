@@ -3,3 +3,5 @@
 ^usethis/*$
 ^LICENSE\.md$
 ^inst/*.rds$
+^test_examples/*$
+^simulation/*$
