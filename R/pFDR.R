@@ -1,15 +1,19 @@
-#' Compute pFDR
-#' @param lambda_draws MCMC samples obtianed from `pvbayes`
-#' @param test_stat Bayesian estimates
-#' @param optim logical. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, if FALSE then k must be specified
-#' @param alpha Confidence level s.t. pFDR(k)=alpha
-#' @param k Critical value
+#' Optimization of pFDR
+#' @param lambda_draws An rvar object of MCMC samples obtained from `pvbayes`.
+#' @param test_stat A function of test statistic (e.g. mean, quantile).
+#' @param optim A logical value. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, otherwise k must be specified.
+#' @param alpha A real value between (0,1). Confidence level s.t. pFDR(k)=alpha.
+#' @param k A real value. Specified critical value.
+#' @param n_eval An integer. Amount of grids when doing optimization.
 #' @returns
 #' \itemize{
-#'   \item k - Critical value for calculating pFDR
-#'   \item optim - Indicate if the k value is optimized or specified
-#'   \item pFDR - Positive false discovery rate value
-#'   \item BayesTIE - Bayesian type-I error
+#'   \item k - Critical value for calculating pFDR.
+#'   \item optim - Indicate if the k value is optimized.
+#'   \item pFDR - Positive false discovery rate.
+#'   \item test_stat - A matrix of test statistics in each cell.
+#'   \item BayesTIE - A matrix of Bayesian type-I error.
+#'   \item range_test_stat - A vector of maximal and minimal test statistics.
+#'   \item sig_pfdr - A matrix of discoveries (0 or 1) using pFDR as the threshold.
 #' }
 #' @examples
 #' \dontrun{
@@ -21,7 +25,8 @@ pFDR <- function(lambda_draws,
                  test_stat,
                  optim = TRUE,
                  alpha = .05,
-                 k = NULL){
+                 k = NULL,
+                 n_eval = 100){
 
 
   temp <- function(x){
@@ -40,15 +45,16 @@ pFDR <- function(lambda_draws,
 
   if (optim == TRUE){
 
-    k.optim <- tryCatch(
-      {stats::uniroot(
-        temp,
-        interval = range_test_stat
-      )$root},
-      error = function(e){
-        range_test_stat[2]
-      }
-      )
+    k_val <- seq(from = range_test_stat[1],
+                 to = range_test_stat[2],
+                 length.out = n_eval)
+
+    temp_val <- sapply(k_val, temp)
+
+    k.optim <- ifelse(sum(temp_val<=0)==0,
+                      range_test_stat[2],
+                      min(k_val[temp_val<=0])
+    )
 
   } else {
 

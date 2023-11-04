@@ -31,7 +31,10 @@ Imports:
     posterior,
     Rcpp,
     stats,
-    utils
+    utils,
+    pvLRT,
+    mvtnorm,
+    stringr
 Remotes: 
     stan-dev/cmdstanr
 LinkingTo: 

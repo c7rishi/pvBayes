@@ -2,27 +2,31 @@
 % Please edit documentation in R/pvbayes_est.R
 \name{pvbayes_est}
 \alias{pvbayes_est}
-\title{Bayes estimate using MCMC samples}
+\title{Signal detection function using MCMC samples with pDFR threshold}
 \usage{
-pvbayes_est(lambda_draws, test_stat, prob = NULL, alpha = 0.05, ...)
+pvbayes_est(lambda_draws, test_stat, alpha = 0.05, ...)
 }
 \arguments{
-\item{lambda_draws}{MCMC samples obtianed from \code{pvbayes}}
+\item{lambda_draws}{An rvar object of MCMC samples obtained from \code{pvbayes}.}
 
-\item{alpha}{Confidence level s.t. pFDR(k)=alpha}
+\item{test_stat}{A function of test statistic (e.g. mean, quantile).}
 
-\item{test_method}{The choice of test statistic based on posterior distribution}
+\item{alpha}{A real value between (0,1). Confidence level s.t. pFDR(k)=alpha.}
 }
 \value{
 \itemize{
-\item k - Critical value for calculating pFDR
-\item optim - Indicate if the k value is optimized or specified
-\item pFDR - Positive false discovery rate value
-\item BayesTIE - Bayesian type-I error
+\item k - Critical value for calculating pFDR.
+\item optim - Indicate if the k value is optimized.
+\item pFDR - Positive false discovery rate.
+\item test_stat - A matrix of test statistics in each cell.
+\item BayesTIE - A matrix of Bayesian type-I error.
+\item range_test_stat - A vector of maximal and minimal test statistics.
+\item sig_pfdr - A matrix of discoveries (0 or 1) using pFDR as the threshold.
+\item sig_naive - A reference matrix of discoveries (0 or 1) using .05 quantile.
 }
 }
 \description{
-Bayes estimate using MCMC samples
+Signal detection function using MCMC samples with pDFR threshold
 }
 \examples{
 \dontrun{

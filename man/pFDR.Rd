@@ -2,31 +2,43 @@
 % Please edit documentation in R/pFDR.R
 \name{pFDR}
 \alias{pFDR}
-\title{Compute pFDR}
+\title{Optimization of pFDR}
 \usage{
-pFDR(lambda_draws, test_stat, optim = TRUE, alpha = 0.05, k = NULL)
+pFDR(
+  lambda_draws,
+  test_stat,
+  optim = TRUE,
+  alpha = 0.05,
+  k = NULL,
+  n_eval = 100
+)
 }
 \arguments{
-\item{lambda_draws}{MCMC samples obtianed from \code{pvbayes}}
+\item{lambda_draws}{An rvar object of MCMC samples obtained from \code{pvbayes}.}
 
-\item{test_stat}{Bayesian estimates}
+\item{test_stat}{A function of test statistic (e.g. mean, quantile).}
 
-\item{optim}{logical. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, if FALSE then k must be specified}
+\item{optim}{A logical value. Use specified critical value or optimize pFDR(k)=alpha. Default is TRUE, otherwise k must be specified.}
 
-\item{alpha}{Confidence level s.t. pFDR(k)=alpha}
+\item{alpha}{A real value between (0,1). Confidence level s.t. pFDR(k)=alpha.}
 
-\item{k}{Critical value}
+\item{k}{A real value. Specified critical value.}
+
+\item{n_eval}{An integer. Amount of grids when doing optimization.}
 }
 \value{
 \itemize{
-\item k - Critical value for calculating pFDR
-\item optim - Indicate if the k value is optimized or specified
-\item pFDR - Positive false discovery rate value
-\item BayesTIE - Bayesian type-I error
+\item k - Critical value for calculating pFDR.
+\item optim - Indicate if the k value is optimized.
+\item pFDR - Positive false discovery rate.
+\item test_stat - A matrix of test statistics in each cell.
+\item BayesTIE - A matrix of Bayesian type-I error.
+\item range_test_stat - A vector of maximal and minimal test statistics.
+\item sig_pfdr - A matrix of discoveries (0 or 1) using pFDR as the threshold.
 }
 }
 \description{
-Compute pFDR
+Optimization of pFDR
 }
 \examples{
 \dontrun{

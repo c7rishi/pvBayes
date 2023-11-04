@@ -1,5 +1,7 @@
 library(tidyverse)
 library(pvLRT)
+library(posterior)
+
 
 signal_mat <- matrix(1, nrow(statin46), ncol(statin46))
 
@@ -18,11 +20,18 @@ data <- r_contin_table_zip(
 
 res <- pvBayes::pvbayes(
   data,
-  "poisson",
+  "poisson_indep_2",
   stan_chains = 1
 )
 
+# saveRDS(res, file = "~/test_draws.RDS", compress = "xz")
+res <- readRDS("~/test_draws.RDS")
 
-data
-res$E %>% round(2)
-res$draws$n_pred  %>% mean() %>% round(2)
+res$draws$lambda_indep
+res$draws$lambda_resid
+res %>%
+  extract_correlation_matrix(par = "lambda",
+                             method = "spearman",
+                             by_row = TRUE)
+
+

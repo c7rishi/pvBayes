@@ -3,7 +3,7 @@
 #' @importFrom data.table %like%
 #' @noRd
 pFDR0 <- function(lambda_draws,
-                  test_stat,
+                  test_stat = function(x) median(x),
                   optim = FALSE,
                   alpha = NULL,
                   k = 1.0){

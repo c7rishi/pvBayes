@@ -6,37 +6,53 @@
 \usage{
 pvbayes(
   contin_table,
-  model = "horseshoe",
+  model = "poisson_indep",
   stan_obj = NULL,
+  starting = "random",
   stan_seed = 123,
   stan_chains = 4,
-  stan_parallel_chains = 4,
+  stan_iter_sampling = 1000,
+  retry = 10,
+  return_stan = FALSE,
   ...
 )
 }
 \arguments{
-\item{contin_table}{IxJ contingency table showing pairwise counts of adverse events for I AE (along the rows) and J Drugs (along the columns)}
+\item{contin_table}{IxJ contingency table showing pairwise counts of adverse events for I AE (along the rows) and J Drugs (along the columns). Colnames and rownames are needed.}
 
-\item{model}{Select Bayesian methods
+\item{model}{Options of model:
 \itemize{
-\item \code{horseshoe} - model 1
-\item \code{beta_prime} - model 2
+\item \code{poisson} - poisson model with horseshoe prior
+\item \code{poisson_indep} - poisson model under independent assumption with horseshoe prior
+\item \code{zip} - zero-inflated poisson model with horseshoe prior
+\item \code{zip_indep} - zero-inflated poisson model under independent assumption with horseshoe prior
+\item \code{beta_prime} - beta prime model
 }}
 
 \item{stan_obj}{User defined model in stan with input: \code{n} counts in each cells, \code{E} expected value for each cells, and \code{N} total number of cells IxJ}
+
+\item{starting}{option of HMC start point
+\itemize{
+\item \code{random} - random starting point chosen by cmdstanr
+\item \code{LRT} - likelihood ratio estimator by pvLRT
+\item \code{MAP}- maximum posterior estimator
+}}
 
 \item{stan_seed}{A seed for the (P)RNG to pass to CmdStan.}
 
 \item{stan_chains}{The number of Markov chains to run in CmdStan. The default is 2.}
 
-\item{stan_parallel_chains}{The maximum number of MCMC chains to run in parallel in CmdStan.}
+\item{stan_iter_sampling}{An integer of total sampling number.}
 
-\item{...}{additional parameters}
+\item{retry}{An integer for maximum repeated number of Stan sampling process.}
+
+\item{...}{additional parameters, currently is not used.}
 }
 \value{
 \itemize{
-\item lambda_draws - A tibble contain the MCMC samples for each poisson rate parameter.
-\item contin_table_long - The converted contingency table in long format tibble.
+\item E - Contingency table of expected counts.
+\item draws - A list contains the MCMC samples for each parameters.
+\item MCMC_convergence - Information of Stan sampler.
 }
 }
 \description{
@@ -46,9 +62,5 @@ Fitting Poisson model with Bayesian methods for pharmacovigilance
 \dontrun{
 library(pvLRT)
 data(statin46)
-mod <- pvbayes(contin_table = statin46, model = "horseshoe")
-
-#obtain the MCMC samples
-mod$lambda_draws
 }
 }
