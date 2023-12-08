@@ -32,7 +32,7 @@ sig_pos <- list(
 
 test_stat <- function(x){quantile(x, 0.05)}
 
-sig_thresh <- 1.05
+sig_thresh <- 1
 
 ###command lines
 cmd_args <- commandArgs(trailingOnly = TRUE) %>%

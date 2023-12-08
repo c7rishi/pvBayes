@@ -4,7 +4,13 @@
 \alias{extract_correlation_matrix}
 \title{Extract correlation matrix from pvBayes object}
 \usage{
-extract_correlation_matrix(obj, par, by_row = FALSE, method = "pearson")
+extract_correlation_matrix(
+  obj,
+  par,
+  by_row = FALSE,
+  method = "pearson",
+  log_scale = FALSE
+)
 }
 \arguments{
 \item{obj}{A pvBayes object with lamabda draws}

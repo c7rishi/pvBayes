@@ -4,7 +4,7 @@ library(ggplot2)
 library(posterior)
 ### Arguments
 
-folder <- "simulation_case1"
+folder <- "simulation_case1b"
 file_path0 <- "D:/Documents/UB/Research/Code/CCR/Download"
 file_path1 <- file.path(file_path0, folder)
 
@@ -200,12 +200,12 @@ plot_metrics <- function(metric = NULL,
     scale_color_manual(
       values = c(
         "LRT" = "black",
-        "poisson" = "blue1",
-        "poisson_indep" = "lightskyblue2",
-        "poisson_indep2" = "lightskyblue4",
-        "poisson_indep3" = "red",
-        "zip" = "yellow1",
-        "zip_indep" = "orange1"
+        "poisson_test" = "blue1",
+        "poisson_indep_test" = "lightskyblue2",
+        "zip_test" = "yellow1",
+        "zip_indep_test" = "orange1",
+        "poisson_LKJ_test" = "lightskyblue4",
+        "poisson_correlated_test" = "red"
       )
     ) +
     geom_hline(yintercept = 0.05,
