@@ -19,22 +19,23 @@ parameters {
   real<lower = 0> tau;
   real<lower = 0> sigma_indep;
 
+  array[I, J] real log_mu;
+
   array[I, J] real<lower=0> theta;
-  array[I, J] real log_lambda_indep;
-  array[I, J] real log_lambda_resid;
+  //array[I, J] real log_lambda_indep;
+  //array[I, J] real log_lambda_resid;
 
 }
 
 transformed parameters {
 
   array[I, J] real log_lambda;
-  array[I, J] real log_mu;
 
   for (i in 1 : I){
-    for (j in 1 : J ){
-      log_lambda[i, j] = log_lambda_indep[i, j] + log_lambda_resid[i, j];
-      log_mu[i, j] = log_lambda[i, j] + log_E[i, j];
-      //log_lambda[i,j] = log_mu[i,j] - log_E[i,j];
+    for (j in 1 :J ){
+      //log_lambda[i, j] = log_lambda_indep[i, j] + log_lambda_resid[i, j];
+      //log_mu[i, j] = log_lambda[i, j] + log_E[i, j];
+      log_lambda[i,j] = log_mu[i,j] - log_E[i,j];
     }
   }
 
@@ -48,8 +49,9 @@ model {
   for (i in 1 : I){
     for (j in 1 : J){
       theta[i, j] ~ cauchy (0, 1);
-      log_lambda_indep[i, j] ~ normal ( 0, sigma_indep );
-      log_lambda_resid[i, j] ~ normal ( 0, tau * theta[i, j] );
+      log_mu[i, j] ~ normal (log_E[i, j], sqrt(sigma_indep^2 + tau^2 * theta[i, j]^2));
+      //log_lambda_indep[i, j] ~ normal ( 0, sqrt(sigma_indep^2) );
+      //log_lambda_resid[i, j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2) );
       n[i, j] ~ poisson_log ( log_mu[i, j] );
     }
   }
@@ -60,14 +62,14 @@ generated quantities{
 
   array[I, J] int<lower=0> n_pred;
   array[I, J] real<lower=0> lambda;
-  array[I, J] real<lower=0> lambda_indep;
-  array[I, J] real<lower=0> lambda_resid;
+  //array[I, J] real<lower=0> lambda_indep;
+  //array[I, J] real<lower=0> lambda_resid;
   for (i in 1 : I){
     for (j in 1 : J){
       n_pred[i, j] = poisson_log_rng ( log_mu[i, j] );
       lambda[i, j] = exp(log_lambda[i, j]);
-      lambda_indep[i, j] = exp(log_lambda_indep[i, j]);
-      lambda_resid[i, j] = exp(log_lambda_resid[i, j]);
+      //lambda_indep[i, j] = exp(log_lambda_indep[i, j]);
+      //lambda_resid[i, j] = exp(log_lambda_resid[i, j]);
     }
   }
 

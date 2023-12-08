@@ -11,6 +11,8 @@ pFDR0 <- function(lambda_draws,
   # test_stat is an user-defined function to calculate the
   # test statistic (critical value).
 
+  # browser()
+
   tmp_draws <- posterior::as_draws_df(lambda_draws) %>%
     data.table::setDT() %>%
     data.table::melt(
@@ -108,6 +110,10 @@ pFDR0 <- function(lambda_draws,
         as.matrix()
     }
   # generate the dscov matrix with names
+
+  dscov_mat <- ifelse(
+    is.na(dscov_mat), 0, dscov_mat
+  )
 
   range_test_stat <- range(tmp_draws$obs_test_stat)
 

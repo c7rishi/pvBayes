@@ -12,6 +12,7 @@ pvbayes(
   stan_seed = 123,
   stan_chains = 4,
   stan_iter_sampling = 1000,
+  stan_cov_rate = 0.5,
   retry = 10,
   return_stan = FALSE,
   ...

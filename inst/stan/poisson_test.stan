@@ -21,6 +21,8 @@ parameters {
   array[I, J] real log_lambda;
   array[I, J] real<lower=0> theta;
 
+  real<lower = 0> sigma_indep2;
+
 }
 
 transformed parameters {
@@ -48,7 +50,7 @@ model {
     for (j in 1 : J) {
 
       theta[i,j] ~ cauchy (0, 1);
-      log_lambda[i,j] ~ normal ( 0, tau * theta[i,j] );
+      log_lambda[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_indep2^2) );
 
       if (n[i, j] == 0) {
 

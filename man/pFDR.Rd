@@ -10,7 +10,8 @@ pFDR(
   optim = TRUE,
   alpha = 0.05,
   k = NULL,
-  n_eval = 100
+  n_eval = 100,
+  thresh = 1.05
 )
 }
 \arguments{

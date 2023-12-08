@@ -10,7 +10,6 @@ signal_generation(
   sig_position,
   sig_strength,
   non_sig_corr_mat = matrix(0, nrow = J - 1, ncol = J - 1) \%>\% `diag<-`(1),
-  sig_mean_vec = NULL,
   sig_corr_mat = NULL,
   var_vec = rep(1e-04, J - 1)
 )
@@ -26,11 +25,11 @@ signal_generation(
 
 \item{non_sig_corr_mat}{A (J-1)x(J-1) matrix. Correlation matrix of multivariate-normal distribution for non-signal cells generation.}
 
-\item{sig_mean_vec}{A positive numeric vector length by (J-1). Mean vector of multivariate-normal distribution for non-signal cells generation.}
-
 \item{sig_corr_mat}{A (J-1)x(J-1) matrix. Correlation matrix of multivariate-normal distribution for signal cells generation.}
 
 \item{var_vec}{A positive numeric vector length by (J-1). Variance vector of multivariate-normal for both signal and non-signal generation. Suggested to be relatively small value.}
+
+\item{sig_mean_vec}{A positive numeric vector length by (J-1). Mean vector of multivariate-normal distribution for non-signal cells generation.}
 }
 \value{
 \itemize{

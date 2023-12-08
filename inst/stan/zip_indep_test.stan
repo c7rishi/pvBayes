@@ -23,6 +23,8 @@ parameters {
   //array[I, J] real log_mu;
   array[I, J] real<lower=0> theta;
 
+  real<lower = 0> sigma_indep2;
+
   array[I, J] real log_lambda_raw_indep;
   array[I, J] real log_lambda_raw_resid;
 
@@ -50,13 +52,13 @@ model {
   tau ~ cauchy(0, 1);
   omega ~ beta(0.5, 0.5); //Jeffrey's prior
   sigma_indep ~ cauchy(0, 1);
-
+  sigma_indep2 ~ cauchy(0, 1);
   for (i in 1 : I) {
     for (j in 1 : J) {
 
       theta[i,j] ~ cauchy (0, 1);
       log_lambda_raw_indep[i, j] ~ normal ( 0, sqrt(sigma_indep^2) );
-      log_lambda_raw_resid[i, j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2));
+      log_lambda_raw_resid[i, j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 + sigma_indep2^2));
       //log_mu[i, j] ~ normal ( log_E[i, j], sqrt(sigma_indep^2 + tau^2 * theta[i, j]^2) );
 
       if (n[i, j] == 0) {

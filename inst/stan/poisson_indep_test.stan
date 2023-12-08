@@ -18,6 +18,7 @@ parameters {
 
   real<lower = 0> tau;
   real<lower = 0> sigma_indep;
+  real<lower = 0> sigma_indep2;
 
   array[I, J] real<lower=0> theta;
   array[I, J] real log_lambda_indep;
@@ -44,12 +45,12 @@ model {
 
   tau ~ cauchy(0, 1);
   sigma_indep ~ cauchy(0, 1);
-
+  sigma_indep2 ~ cauchy(0, 1);
   for (i in 1 : I){
     for (j in 1 : J){
       theta[i, j] ~ cauchy (0, 1);
       log_lambda_indep[i, j] ~ normal ( 0, sigma_indep );
-      log_lambda_resid[i, j] ~ normal ( 0, tau * theta[i, j] );
+      log_lambda_resid[i, j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_indep2^2) );
       n[i, j] ~ poisson_log ( log_mu[i, j] );
     }
   }

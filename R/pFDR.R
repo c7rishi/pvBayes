@@ -26,7 +26,8 @@ pFDR <- function(lambda_draws,
                  optim = TRUE,
                  alpha = .05,
                  k = NULL,
-                 n_eval = 100){
+                 n_eval = 100,
+                 thresh = 1.05){
 
 
   temp <- function(x){
@@ -39,14 +40,15 @@ pFDR <- function(lambda_draws,
 
   }
 
+
   range_test_stat <- pFDR0(lambda_draws = lambda_draws,
                            test_stat = test_stat,
                            k = 1)$range_test_stat
 
   if (optim == TRUE){
 
-    k_val <- seq(from = range_test_stat[1],
-                 to = range_test_stat[2],
+    k_val <- seq(from = max(range_test_stat[1], thresh),
+                 to = min(range_test_stat[2], thresh),
                  length.out = n_eval)
 
     temp_val <- sapply(k_val, temp)
@@ -55,6 +57,7 @@ pFDR <- function(lambda_draws,
                       range_test_stat[2],
                       min(k_val[temp_val<=0])
     )
+
 
   } else {
 

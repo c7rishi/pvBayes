@@ -2,6 +2,8 @@
 
 export("%>%")
 export(data_generation)
+export(extract_correlation_matrix)
+export(extract_draws_list)
 export(model_name)
 export(pFDR)
 export(pvBayes_setup)

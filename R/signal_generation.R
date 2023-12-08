@@ -24,7 +24,7 @@ signal_generation <- function(
     sig_position,
     sig_strength,
     non_sig_corr_mat = matrix(0, nrow = J-1, ncol = J-1) %>% `diag<-`(1),
-    sig_mean_vec = NULL,
+    # sig_mean_vec = NULL,
     sig_corr_mat = NULL,
     var_vec = rep(0.0001, J-1)
 ){
@@ -53,14 +53,6 @@ signal_generation <- function(
     }
 
   }
-
-  # non_sig_lambda_sub_mat <- mvtnorm::rmvnorm(
-  #   n = I-1,
-  #   mean = rep(0, J-1),
-  #   sigma = diag(sqrt(var_vec)) %*% non_sig_corr_mat %*% diag(sqrt(var_vec))
-  # ) %>%
-  #   exp() %>%
-  #   pmin(., matrix(.999, nrow = I-1, ncol = J-1))
 
   sig_lambda_sub_mat <- strength_sub_mat %>% apply(
     MARGIN = 1,
@@ -98,8 +90,8 @@ signal_generation <- function(
   # )
 
   lambda_mat <- sig_lambda_sub_mat %>%
-    rbind( rep(1, J-1) ) %>%
-    cbind( rep(1, I) )
+    rbind( rep(0.99, J-1) ) %>%
+    cbind( rep(0.99, I) )
 
   return(
     list(

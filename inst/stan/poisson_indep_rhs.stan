@@ -19,7 +19,9 @@ parameters {
   real<lower = 0> tau;
   real<lower = 0> sigma_indep;
 
-  array[I, J] real<lower=0> theta;
+  real<lower = 0> c_rhs;
+
+  array[I, J] real<lower=0> theta_raw;
   array[I, J] real log_lambda_indep;
   array[I, J] real log_lambda_resid;
 
@@ -30,11 +32,14 @@ transformed parameters {
   array[I, J] real log_lambda;
   array[I, J] real log_mu;
 
+  array[I, J] real<lower=0> theta;
+
   for (i in 1 : I){
     for (j in 1 : J ){
       log_lambda[i, j] = log_lambda_indep[i, j] + log_lambda_resid[i, j];
       log_mu[i, j] = log_lambda[i, j] + log_E[i, j];
       //log_lambda[i,j] = log_mu[i,j] - log_E[i,j];
+      theta[i,j] = c_rhs^2 * theta_raw[i,j]^2 / (c_rhs^2 + tau^2 * theta_raw[i,j]^2);
     }
   }
 
@@ -45,9 +50,11 @@ model {
   tau ~ cauchy(0, 1);
   sigma_indep ~ cauchy(0, 1);
 
+  c_rhs ~ normal(0,10);
+
   for (i in 1 : I){
     for (j in 1 : J){
-      theta[i, j] ~ cauchy (0, 1);
+      theta_raw[i, j] ~ cauchy (0, 1);
       log_lambda_indep[i, j] ~ normal ( 0, sigma_indep );
       log_lambda_resid[i, j] ~ normal ( 0, tau * theta[i, j] );
       n[i, j] ~ poisson_log ( log_mu[i, j] );

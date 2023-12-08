@@ -14,20 +14,25 @@
 extract_correlation_matrix <- function(obj,
                                        par,
                                        by_row = FALSE,
-                                       method = "pearson"){
-
+                                       method = "pearson",
+                                       log_scale = FALSE){
+  # browser()
   draws_list <- extract_draws_list(obj, par)
+
   tmp <- draws_list %>%
     lapply(
       function(mat){
-
+        if(log_scale){
+          mat <- log(mat)
+        }
         if (by_row) {
-          t(mat)
+          out <- t(mat) %>%
+            cor(method = method)
         } else {
-          mat
-        } %>%
-          cor(method = method)
-
+          out <- mat %>%
+            cor(method = method)
+        }
+        return(out)
       }
     )
 
@@ -44,6 +49,7 @@ extract_correlation_matrix <- function(obj,
   for (ii in seq_along(tmp)) {
     tmp_array[ii, , ] <- tmp[[ii]]
   }
+
 
   return(posterior::rvar(tmp_array))
 }

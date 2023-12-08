@@ -1,6 +1,0 @@
-install.packages("/user/xinweihu/R_package_source/pvBayes_0.1.0.tar.gz", repos = NULL, type="source")
-
-
-
-cd /projects/academic/chakrab2/xinweihu/R_scripts/
-Rscript Job_submit_test_20230801.R

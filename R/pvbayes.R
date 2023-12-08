@@ -41,6 +41,7 @@ pvbayes <- function(contin_table,
                     stan_seed = 123,
                     stan_chains = 4,
                     stan_iter_sampling = 1000,
+                    stan_cov_rate = 0.5,
                     retry = 10,
                     return_stan = FALSE,
                     ...){
@@ -79,26 +80,6 @@ pvbayes <- function(contin_table,
   J <- ncol(contin_table)
   name.c <- colnames(contin_table)
   name.r <- rownames(contin_table)
-
-  # dots <- list(...)
-  # additional_var <- list(
-  #   scale_global = 1,
-  #   scale_local = 1,
-  #   nu_global = 1,
-  #   nu_local = 1,
-  #   slab_scale = 1,
-  #   slab_df = 1,
-  #   c_alpha = 1,
-  #   c_beta = 1,
-  #   gamma = 10,
-  #   b = 1
-  # )
-
-  # for (name in names(additional_var)) {
-  #   if (!is.null(dots[[name]])) {
-  #     additional_var[[name]] <- dots[[name]]
-  #   }
-  # }
 
   table_E <- contin_table %>%
     {tcrossprod(rowSums(.), colSums(.)) / sum(.)}
@@ -142,7 +123,7 @@ pvbayes <- function(contin_table,
       1:stan_chains,
       function(i)
         list(
-          lambda = lambda_start,
+          log_lambda = log(lambda_start),
           omega = omega_start
         )
     )
@@ -156,7 +137,6 @@ pvbayes <- function(contin_table,
   while( stan_retry ) {
 
     all_stan_in <- list(
-      # data = c(stan_data, additional_var),
       data = stan_data,
       seed = stan_seed,
       chains = stan_chains,
@@ -175,13 +155,15 @@ pvbayes <- function(contin_table,
     )$num_divergent %>%
       {sum(.)/(stan_iter_sampling * stan_chains)}
 
-    stan_retry <- {div_rate > 0.3} & {n_retry <= retry}
+    stan_retry <- {div_rate > stan_cov_rate} & {n_retry <= retry}
     n_retry <- n_retry + 1
     stan_seed <- stan_seed + 1
 
   }
 
   convergence_msg <- ifelse(stan_retry, "Error", "Completed")
+
+  # browser()
 
   par_vec <- c(
     "lambda",
@@ -190,49 +172,50 @@ pvbayes <- function(contin_table,
     "omega",
     "kappa",
     "zi",
-    "n_pred"
+    "n_pred",
+    "beta_Drug",
+    "rho_Drug",
+    "rho_AE"
   )
 
-  draws_list <- list()
+  draws_list <-  1:length(par_vec) %>%
+    setNames(
+      par_vec
+    ) %>%
+    lapply(
+      FUN = function(k){
+        temp <- tryCatch(
+          {
+            mod.fit$draws(format = "draws_matrix",
+                          variables = par_vec[k]) %>%
+              posterior::as_draws_rvars() %>%
+              .[[par_vec[k]]]
+          },
+          error = function(e){
 
-  for (k in 1:length(par_vec)){
+            NULL
 
-    temp <- tryCatch(
-      {
-        mod.fit$draws(format = "draws_matrix",
-                      variables = par_vec[k]) %>%
-          posterior::as_draws_rvars() %>%
-          .[[par_vec[k]]]
-      },
-      error = function(e){
+          }
+        )
 
-        NULL
+        if ( par_vec[k] %in% c("lambda",
+                               "lambda_indep",
+                               "lambda_resid",
+                               "n_pred")
+             & !is.null(temp)) {
 
+          dimnames(temp) <- list(name.r, name.c)
+
+        }
+
+        return(temp)
       }
     )
 
-    if ( is.null(temp) ) {
-
-      next
-
-    }
-
-    if ( length(dim(temp)) == 1) {
-
-      names(temp) <-  name.c
-
-    } else{
-
-      dimnames(temp) <- list(name.r, name.c)
-
-    }
-
-    draws_list[[par_vec[k]]] <- temp
-
-  }
-
   return(
     list(
+      model = model,
+      data = contin_table,
       E = table_E,
       draws = draws_list,
       MCMC_convergence = c(glue::glue("Divergence rate: {div_rate*100}%"),

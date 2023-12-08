@@ -61,13 +61,13 @@ generated quantities{
   array[I, J] int<lower=0> n_pred;
   array[I, J] real<lower=0> lambda;
   array[I, J] real<lower=0> lambda_indep;
-  array[I, J] real<lower=0> lambda_resid;
+  //array[I, J] real<lower=0> lambda_resid;
   for (i in 1 : I){
     for (j in 1 : J){
       n_pred[i, j] = poisson_log_rng ( log_mu[i, j] );
-      lambda[i, j] = exp(log_lambda[i, j]);
+      lambda[i, j] = exp(log_lambda_resid[i, j]);
       lambda_indep[i, j] = exp(log_lambda_indep[i, j]);
-      lambda_resid[i, j] = exp(log_lambda_resid[i, j]);
+      //lambda_resid[i, j] = exp(log_lambda_resid[i, j]);
     }
   }
 

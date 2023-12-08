@@ -22,13 +22,15 @@
 pvbayes_est <- function(lambda_draws,
                         test_stat,
                         alpha = .05,
+                        thresh = 1.05,
                         ...){
 
   res <-
     pFDR(lambda_draws = lambda_draws,
          test_stat =  test_stat,
          optim = TRUE,
-         alpha = alpha)
+         alpha = alpha,
+         thresh = thresh)
 
   sig_naive <- lambda_draws %>%
     posterior::quantile2(0.05) %>%
