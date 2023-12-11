@@ -5,7 +5,7 @@ library(posterior)
 
 signal_mat <- matrix(1, nrow(statin46), ncol(statin46))
 
-signal_mat[1, 1] <- 4
+signal_mat[1, 1] <- 1.5
 data <- r_contin_table_zip(
   n = 1,
   row_marginals = rowSums(statin46),
@@ -20,31 +20,32 @@ data <- r_contin_table_zip(
 
 data <- temp$data
 
+model_name()
+
 res <-
   c(
-    "poisson_indep",
-    "poisson_indep_test"
+    "zip_horseshoe",
+    "zip_horseshoe_correlated",
+    "zip_horseshoe_LKJ",
+    "zip_horseshoe_LKJ_other"
   ) %>%
   sapply(
     function(mod){
-      pvBayes::pvbayes(
-        data,
-        mod,
-        stan_chains = 1,
-        stan_iter_sampling = 1000
+      tryCatch(
+        pvBayes::pvbayes(
+          data,
+          mod,
+          stan_chains = 1,
+          stan_iter_sampling = 1000
+        ),
+        error = function(e){ e }
       )
+
     },
     USE.NAMES = TRUE,
     simplify = FALSE
   )
 
-res$poisson_correlated_test <-
-  pvBayes::pvbayes(
-    data,
-    "poisson_correlated_test",
-    stan_chains = 1,
-    stan_iter_sampling = 1000
-  )
 
 res_est <- res %>%
   lapply(

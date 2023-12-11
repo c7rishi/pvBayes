@@ -200,12 +200,12 @@ plot_metrics <- function(metric = NULL,
     scale_color_manual(
       values = c(
         "LRT" = "black",
-        "poisson" = "blue1",
-        "poisson_indep" = "lightskyblue2",
-        "poisson_indep2" = "lightskyblue4",
-        "poisson_indep3" = "red",
-        "zip" = "yellow1",
-        "zip_indep" = "orange1"
+        "poisson_test" = "blue1",
+        "poisson_indep_test" = "lightskyblue2",
+        "zip_test" = "yellow1",
+        "zip_indep_test" = "orange1",
+        "poisson_LKJ_test" = "lightskyblue4",
+        "poisson_correlated_test" = "red"
       )
     ) +
     geom_hline(yintercept = 0.05,
@@ -231,49 +231,47 @@ plot_metrics() %>%
 
 simu_df %>%
   filter(
-    lambda == 1
+    lambda > 2
   ) %>%
-  select(index, model, FDR) %>%
+  select(index, model, FDR, lambda) %>%
+  distinct() %>%
   pivot_wider(
     names_from = model,
     values_from = FDR
   ) %>%
   filter(
     LRT == 0 &
-      poisson_indep > 0 &
-      zip_indep > 0 &
-      poisson_indep2 > 0 &
-      poisson_indep3 > 0
-  ) %>%
-  select(
-    LRT,
-    poisson_indep,
-    poisson_indep2,
-    poisson_indep3,
-    poisson_LKJ
+      zip_indep_test > 0
   )
 
-temp <- try(readRDS(file_names[[402]]))
+temp <- try(readRDS(file_names[[508]]))
 temp$lambda_true
 
 temp$signal_pos_mat
 temp$lambda_true_mat %>% round(2)
 
-temp$res_pvbayes_est$poisson_indep3$sig_pfdr %>% unname
-temp$res_pvbayes_est$poisson_indep3$test_stat %>% unname
-temp$res_pvbayes_est$poisson_indep3$k
+temp$res_pvbayes_est$zip_indep_test$sig_pfdr %>% unname
 
-temp$res_pvbayes$poisson_indep3$lambda %>% unname()
+res <- temp$data %>%
+  pvBayes::pvbayes(
+    "zip_LKJ_test2",
+    stan_chains = 1,
+    stan_iter_sampling = 1000
+  )
 
-res_est <- temp$res_pvbayes$poisson_indep2$lambda %>%
+res$draws$lambda %>% unname() %>% round(2) %>%
+  {Pr(.>1)}
+res_est <- res$draws$lambda %>%
   pvBayes::pvbayes_est(
-    test_stat = function(x) quantile(x, 0.05)
+    test_stat = function(x) quantile(x, 0.05),
+    thresh = 1.01
   )
 
 res_est$sig_pfdr %>% unname
 
 res_lrt <- temp$data %>% pvLRT::pvlrt()
-res_lrt %>% pvLRT::extract_lrstat_matrix() %>% unname()
+res_lrt %>% pvLRT::extract_p_value_matrix() %>% unname() %>%
+  round(3)
 
 E <- temp$data %>%
   {tcrossprod(rowSums(.),colSums(.))/sum(.)}
