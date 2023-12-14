@@ -21,26 +21,26 @@ transformed data {
 
 parameters {
 
+
+  //array[I, J] real beta_indep;
+
+  //real<lower = 0> tau_indep;
+  //array[I, J] real<lower=0> theta_indep;
+  //real<lower = 0> sigma_indep2_indep;
+
   real<lower = 0> tau;
-  real<lower = 0> sigma_AE;
-  vector<lower = 0>[J-1] sigma_Drug;
-
-
+  matrix<lower=0>[I, J-1] theta;
   real<lower = 0> sigma_indep2;
 
   cholesky_factor_corr[J-1] L_rho_Drug;
 
 
-  vector[J-1] beta_Drug_relevant;
-  real beta_Drug_other;
-
-
-
-  array[I] real beta_AE;
-  array[I, J] real<lower=0> theta;
+  matrix<lower=0>[I, J-1] log_lambda_relevant;
+  array[I] real<lower=0> log_lambda_other;
 
   array[J] real<lower=0, upper=1> omega;
-  array[I, J] real log_lambda_resid;
+
+
 }
 
 transformed parameters {
@@ -49,45 +49,62 @@ transformed parameters {
   array[I, J] real log_lambda;
   array[I, J] real log_mu;
 
-  vector[J] beta_Drug;
+  matrix<lower=0>[I, J-1] sigma_lambda_relevant;
+  //array[I] real<lower=0> sigma_lambda_other;
 
-  for (j in 1 : (J-1)) {
-    beta_Drug[j] = beta_Drug_relevant[j];
+  for (i in 1 : I) {
+
+    for (j in 1 : (J-1) ) {
+
+      log_lambda[i, j] = log_lambda_relevant[i, j];
+      sigma_lambda_relevant[i, j] = sqrt(tau^2 * theta[i, j]^2 + sigma_indep2^2);
+      //sigma_lambda[i, j] = sigma_lambda_relevant[i, j];
+
+    }
+
+    log_lambda[i, J] = log_lambda_other[i];
+    //sigma_lambda_other[i] = sqrt(tau^2 * theta[i, J]^2 + sigma_indep2^2);
+    //sigma_lambda[i, J] = sigma_lambda_other[i];
+
   }
 
-  beta_Drug[J] = beta_Drug_other;
 
   for (i in 1 : I){
 
     for (j in 1 : J ){
-      log_lambda[i, j] = beta_AE[i] + beta_Drug[j] + log_lambda_resid[i, j];
+
+      //log_mu[i, j] = beta_indep[i, j] + log_lambda[i, j] + log_E[i,j];
       log_mu[i, j] = log_lambda[i, j] + log_E[i, j];
+
     }
   }
-
-
 
 
 }
 
 model {
 
+  //tau_indep ~ cauchy(0, 1);
+  //sigma_indep2_indep ~ cauchy(0, 1);
+
   tau ~ cauchy(0, 1);
-  sigma_AE ~ cauchy(0, 1);
-  sigma_Drug ~ cauchy(0, 1);
   sigma_indep2 ~ cauchy(0, 1);
-  beta_Drug_other ~ normal(0, 10);
-  beta_Drug_relevant ~ multi_normal_cholesky(zero_mean, diag_pre_multiply(sigma_Drug, L_rho_Drug));
 
   L_rho_Drug ~ lkj_corr_cholesky(1);
 
-
   for (i in 1 : I){
+
+    log_lambda_relevant[i] ~ multi_normal_cholesky(zero_mean, diag_pre_multiply(sigma_lambda_relevant[i], L_rho_Drug));
+    log_lambda_other[i] ~ normal (0, sigma_indep2);
+
+    theta[i] ~ cauchy (0, 1);
 
     for (j in 1 : J){
 
-      theta[i, j] ~ cauchy (0, 1);
-      log_lambda_resid[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_indep2^2) );
+      //theta_indep[i, j] ~ cauchy (0, 1);
+      //beta_indep[i, j] ~ normal (0, sqrt(tau_indep^2 * theta_indep[i, j]^2 + sigma_indep2_indep^2) );
+
+
 
       if (n[i, j] == 0) {
 
@@ -102,8 +119,6 @@ model {
 
       }
     }
-
-    beta_AE[i] ~ normal (0, sigma_AE);
 
   }
 

@@ -10,7 +10,7 @@ N_total_rep <- 100
 n_task_simul <- 20
 
 # model <- "except_beta_prime__poisson_correlated_row"
-lambda_true <- c(1, 1.3, 1.5, 1.7, 1.9, 2, 2.5, 3, 3.5, 4)
+lambda_true <- c(1, 1.3, 1.4, 1.5, 1.7, 1.9, 2, 2.5, 3, 3.5, 4)
 omega <- "0.1"
 n_chains <- 1
 
@@ -28,7 +28,6 @@ n_chains <- 1
 
 
 settings <- expand_grid(
-  #model = model,
   lambda_true = lambda_true,
   N_total_rep = N_total_rep,
   n_task_simul = n_task_simul,

@@ -165,12 +165,10 @@ simu_df_final <- simu_df %>%
   ) %>%
   mutate(
     model = factor(model, levels = c("LRT",
-                                     "poisson_test",
-                                     "zip_test",
-                                     "poisson_indep_test",
-                                     "zip_indep_test",
-                                     "poisson_correlated_test",
-                                     "poisson_LKJ_test"))
+                                     "zip_horseshoe",
+                                     "zip_horseshoe_correlated",
+                                     "zip_horseshoe_LKJ",
+                                     "zip_horseshoe_LKJ_other"))
   )
 
 simu_df_final %>%
@@ -200,12 +198,10 @@ plot_metrics <- function(metric = NULL,
     scale_color_manual(
       values = c(
         "LRT" = "black",
-        "poisson_test" = "blue1",
-        "poisson_indep_test" = "lightskyblue2",
-        "zip_test" = "yellow1",
-        "zip_indep_test" = "orange1",
-        "poisson_LKJ_test" = "lightskyblue4",
-        "poisson_correlated_test" = "red"
+        "zip_horseshoe"  = "blue1",
+        "zip_horseshoe_correlated" = "yellow1",
+        "zip_horseshoe_LKJ" = "lightskyblue2",
+        "zip_horseshoe_LKJ_other" = "lightskyblue4"
       )
     ) +
     geom_hline(yintercept = 0.05,

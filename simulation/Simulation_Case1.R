@@ -6,7 +6,7 @@ library(pvLRT)
 
 ## Pattern
 ## Simulation_[casename].R #1{lambda_true} #2{omega} #3{n_chains} #4{folder}
-## {lambda_true} a string consisted by real numbers seperated by '_', e.g. '2_3_4'
+## {lambda_true} a string consisted by real numbers separated by '_', e.g. '2_3_4'
 ## {omega} a real number of omega in zip
 ## {mod} (currently ignore this argument, make a change in following part)
 ## {mod} (1) "All" means all models will be ran;
@@ -19,12 +19,12 @@ library(pvLRT)
 
 
 ###settings
-mod <- c("poisson_test",
-         "zip_test",
-         "poisson_indep_test",
-         "zip_indep_test",
-         "poisson_correlated_test",
-         "poisson_LKJ_test")
+mod <- c(
+  "zip_horseshoe",
+  "zip_horseshoe_correlated",
+  "zip_horseshoe_LKJ",
+  "zip_horseshoe_LKJ_other"
+)
 
 sig_pos <- list(
   c(45,0)
@@ -32,7 +32,7 @@ sig_pos <- list(
 
 test_stat <- function(x){quantile(x, 0.05)}
 
-sig_thresh <- 1.05
+sig_thresh <- 1.01
 
 ###command lines
 cmd_args <- commandArgs(trailingOnly = TRUE) %>%
@@ -41,7 +41,6 @@ cmd_args <- commandArgs(trailingOnly = TRUE) %>%
       ## fake input for local test
       c("2",
         "0.1",
-        # "poisson__poisson_indep__poisson_indep2__zip__zip_indep",
         "1",
         "simulation_case0")
     } else {
@@ -159,44 +158,42 @@ data <-  signal_true %>%
 #   data <- data_input
 # }
 
-temp_pvbayes <- tryCatch(
-  {mod %>%
-      sapply( function(m){
-        cat("-----------------",m,"-----------------\n")
-        pvbayes(data$contin_table,
-                model = m,
-                stan_chains = n_chains,
-                stan_seed = 1234,
-                stan_iter_sampling = 1000,
-                starting = "LRT"
-        )
-      },
-      simplify = FALSE,
-      USE.NAMES = TRUE
-      ) %>%
-      lapply(function(x){
-        x$draws[c("lambda",
-                  "n_pred",
-                  "omega")]
-      })
+temp_pvbayes <- mod %>%
+  sapply( function(m){
+    cat("-----------------",m,"-----------------\n")
+    tryCatch(
+      pvbayes(data$contin_table,
+              model = m,
+              stan_chains = n_chains,
+              stan_seed = 1234,
+              stan_iter_sampling = 1000,
+              starting = "LRT"),
+      error = function(e){ e }
+    )
   },
-  error = function(e){ e }
-)
+  simplify = FALSE,
+  USE.NAMES = TRUE
+  ) %>%
+  lapply(
+    function(x){ x$draws[c("lambda", "n_pred", "omega")] }
+  )
 
-temp_pvbayes_est <- tryCatch(
-  {temp_pvbayes %>%
-      lapply(
-        function(res){
-          pvbayes_est(
-            lambda_draws = res$lambda,
-            test_stat = test_stat,
-            thresh = sig_thresh
-          )
-        }
+
+temp_pvbayes_est <- temp_pvbayes %>%
+  lapply(
+    function(res){
+      tryCatch(
+        pvbayes_est(
+          lambda_draws = res$lambda,
+          test_stat = test_stat,
+          thresh = sig_thresh
+        )
+        ,
+        error = function(e){ e }
       )
-  },
-  error = function(e){ e }
-)
+
+    }
+  )
 
 temp_pvlrt <- list()
 temp_pvlrt$p_value <- tryCatch(
