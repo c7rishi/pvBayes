@@ -3,7 +3,7 @@
 #' @importFrom data.table %like%
 #' @noRd
 pFDR0 <- function(lambda_draws,
-                  test_stat = function(x) median(x),
+                  test_stat = function(x) quantile(x, 0.05),
                   optim = FALSE,
                   alpha = NULL,
                   k = 1.0){

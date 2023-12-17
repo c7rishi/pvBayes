@@ -20,9 +20,9 @@
 #'}
 #' @export
 pvbayes_est <- function(lambda_draws,
-                        test_stat,
+                        test_stat = function(x){quantile(x, 0.05)},
                         alpha = .05,
-                        thresh = 1.05,
+                        thresh = 1.1,
                         ...){
 
   res <-

@@ -4,7 +4,15 @@
 \alias{pvbayes_est}
 \title{Signal detection function using MCMC samples with pDFR threshold}
 \usage{
-pvbayes_est(lambda_draws, test_stat, alpha = 0.05, thresh = 1.05, ...)
+pvbayes_est(
+  lambda_draws,
+  test_stat = function(x) {
+     quantile(x, 0.05)
+ },
+  alpha = 0.05,
+  thresh = 1.1,
+  ...
+)
 }
 \arguments{
 \item{lambda_draws}{An rvar object of MCMC samples obtained from \code{pvbayes}.}

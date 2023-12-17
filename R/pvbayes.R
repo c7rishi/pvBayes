@@ -35,7 +35,7 @@
 #' }
 #' @export
 pvbayes <- function(contin_table,
-                    model = "poisson_indep",
+                    model = "zip_horseshoe",
                     stan_obj = NULL,
                     starting = "random",
                     stan_seed = 123,

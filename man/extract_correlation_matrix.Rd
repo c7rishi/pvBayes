@@ -9,7 +9,9 @@ extract_correlation_matrix(
   par,
   by_row = FALSE,
   method = "pearson",
-  log_scale = FALSE
+  log_scale = FALSE,
+  replace_0_to_NA = TRUE,
+  ...
 )
 }
 \arguments{

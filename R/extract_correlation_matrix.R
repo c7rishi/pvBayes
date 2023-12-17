@@ -16,13 +16,23 @@ extract_correlation_matrix <- function(obj,
                                        by_row = FALSE,
                                        method = "pearson",
                                        log_scale = FALSE,
+                                       replace_0_to_NA = TRUE,
                                        ...){
   # browser()
   draws_list <- extract_draws_list(obj, par)
 
+
+
   tmp <- draws_list %>%
     lapply(
       function(mat){
+
+        if (replace_0_to_NA) {
+
+          mat <- ifelse(mat == 0, NA, mat)
+
+        }
+
         if(log_scale){
           mat <- log(mat)
         }
