@@ -11,17 +11,20 @@
 #' data(statin46)
 #' }
 #' @export
-extract_correlation_matrix <- function(obj,
-                                       par,
+extract_correlation_matrix <- function(pvbayes_obj,
+                                       par = "lambda",
                                        by_row = FALSE,
                                        method = "pearson",
                                        log_scale = FALSE,
                                        replace_0_to_NA = TRUE,
                                        ...){
-  # browser()
-  draws_list <- extract_draws_list(obj, par)
 
+  if (!("pvbayes" %in% class(pvbayes_obj))) {
+    stop("A 'pvbayes' object is required!")
+  } else{
 
+    draws_list <- extract_draws_list(pvbayes_obj, par)
+  }
 
   tmp <- draws_list %>%
     lapply(

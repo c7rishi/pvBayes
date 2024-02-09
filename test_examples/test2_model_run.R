@@ -25,9 +25,7 @@ model_name()
 res <-
   c(
     "zip_horseshoe",
-    "zip_horseshoe_correlated",
-    "zip_horseshoe_LKJ",
-    "zip_horseshoe_LKJ_other"
+    "zip_horseshoe_LKJ"
   ) %>%
   sapply(
     function(mod){
@@ -45,6 +43,20 @@ res <-
     USE.NAMES = TRUE,
     simplify = FALSE
   )
+
+res$zip_horseshoe %>% class()
+
+est <- res$zip_horseshoe_LKJ %>% pvbayes_est(
+  test_stat = function(x) quantile(x, 0.05)
+)
+
+class(est)
+
+res$zip_horseshoe_LKJ %>% extract_draws_list()
+
+res$zip_horseshoe_LKJ %>% extract_correlation_matrix()
+
+est %>% extract_discovery_mat()
 
 
 res_est <- res %>%

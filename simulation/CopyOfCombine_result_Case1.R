@@ -29,9 +29,11 @@ confusion_table <- function(discovery,
   #level <- ifelse( fp != 0, 1, 0)
   level <- ifelse( (tn + fp) == 0, 0, fp/(tn + fp))
   fdr <- ifelse( fp+tp == 0, 0, fp/(fp+tp) )
-  power <- ifelse( (fn + tp) == 0, 0, tp/(fn + tp))
+  ppv <- 1 - fdr
+  power <- ifelse( (fn + tp) == 0, 0, tp/(tp + fn))
   sen <- ifelse( tp+fn == 0, 0, tp/(tp+fn) )
-  f <- ifelse( tp+1/2*(fp+fn) == 0, 0, tp/(tp+1/2*(fp+fn)) )
+  #f <- ifelse( tp+1/2*(fp+fn) == 0, 0, tp/(tp+1/2*(fp+fn)) )
+  f <- 2/ (1 / sen + 1 / ppv)
 
   return(
     c(Level = level,
@@ -152,6 +154,12 @@ simu_df %>%
   )
 
 simu_df <- readRDS(paste(file_path1,"_full.RDS", sep = ""))
+
+simu_df <- simu_df %>%
+  mutate(
+    PPV = 1-FDR,
+    F_score <- 2/ (1 / Sensitivity + 1 / PPV)
+  )
 
 
 

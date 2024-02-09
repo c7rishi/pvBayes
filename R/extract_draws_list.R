@@ -11,9 +11,13 @@
 #' data(statin46)
 #' }
 #' @export
-extract_draws_list <- function(obj, par = "lambda"){
+extract_draws_list <- function(pvbayes_obj, par = "lambda"){
 
-  dt_draws <- obj$draws[[par]] %>%
+  if (!("pvbayes" %in% class(pvbayes_obj))) {
+    stop("A 'pvbayes' object is required!")
+  }
+
+  dt_draws <- pvbayes_obj$draws[[par]] %>%
     posterior::as_draws_df() %>%
     data.table::as.data.table() %>%
     data.table::melt(

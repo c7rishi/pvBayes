@@ -17,24 +17,21 @@ transformed data {
 
 parameters {
 
-  real<lower = 0> tau;
-  real<lower = 0> sigma_ridge;
-  array[I, J] real<lower=0> theta;
-
+  real<lower=0> tau;
   array[J] real<lower=0, upper=1> omega;
-
-  array[I, J] real log_lambda_tilde;
-
+  array[I, J] real log_lambda_raw;
+  array[I, J] real<lower=0> theta;
+  real<lower = 0> sigma_indep2;
 
 }
 
 transformed parameters {
 
-  array[I, J] real<lower=0> lambda_tilde;
+  array[I, J] real<lower=0> lambda_raw;
 
   for (j in 1 : J){
     for (i in 1 : I){
-      lambda_tilde[i, j] = exp(log_lambda_tilde[i, j]);
+      lambda_raw[i, j] = exp(log_lambda_raw[i, j]);
     }
   }
 
@@ -45,23 +42,23 @@ model {
 
   tau ~ cauchy(0, 1);
   omega ~ beta(0.5, 0.5); //Jeffrey's prior
-  sigma_ridge ~ cauchy(0, 1);
+
   for (i in 1 : I) {
     for (j in 1 : J) {
 
       theta[i,j] ~ cauchy (0, 1);
-      log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_ridge^2) );
+      log_lambda_raw[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_indep2^2) );
 
       if (n[i, j] == 0) {
 
         target += log_sum_exp(bernoulli_lpmf(1 | omega[j]),
         bernoulli_lpmf(0 | omega[j])
-        + poisson_lpmf(0 | lambda_tilde[i, j] * E[i, j] ) );
+        + poisson_lpmf(0 | lambda_raw[i, j] * E[i, j] ) );
 
       } else {
 
         target += bernoulli_lpmf(0 | omega[j])
-        + poisson_lpmf(n[i, j] | lambda_tilde[i, j] * E[i, j] );
+        + poisson_lpmf(n[i, j] | lambda_raw[i, j] * E[i, j] );
 
       }
 
@@ -80,11 +77,11 @@ generated quantities {
   for (j in 1 : J){
     for (i in 1 : I){
 
-      n_pred[i, j] = poisson_log_rng ( log_lambda_tilde[i, j] + log_E[i, j] );
+      n_pred[i, j] = poisson_log_rng ( log_lambda_raw[i, j] + log_E[i, j] );
 
       if (n[i, j] == 0) {
 
-        zi[i, j] = omega[j] / ( omega[j] + (1-omega[j]) * exp(-lambda_tilde[i, j] * E[i, j]) );
+        zi[i, j] = omega[j] / ( omega[j] + (1-omega[j]) * exp(-lambda_raw[i, j] * E[i, j]) );
 
       } else{
 
@@ -92,7 +89,7 @@ generated quantities {
 
       }
       zi_pred[i, j] = bernoulli_rng( zi[i, j] );
-      lambda[i, j] = (1 - zi_pred[i, j]) * lambda_tilde[i, j];
+      lambda[i, j] = (1 - zi_pred[i, j]) * lambda_raw[i, j];
     }
   }
 

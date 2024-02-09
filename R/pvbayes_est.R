@@ -19,31 +19,38 @@
 #' data(statin46)
 #'}
 #' @export
-pvbayes_est <- function(lambda_draws,
+pvbayes_est <- function(pvbayes_obj,
                         test_stat = function(x){quantile(x, 0.05)},
                         alpha = .05,
                         thresh = 1.1,
                         ...){
 
+  if (!("pvbayes" %in% class(pvbayes_obj))) {
+    stop("A 'pvbayes' object is required!")
+  }
+
   res <-
-    pFDR(lambda_draws = lambda_draws,
+    pFDR(lambda_draws = pvbayes_obj$draws$lambda,
          test_stat =  test_stat,
          optim = TRUE,
          alpha = alpha,
          thresh = thresh)
 
-  sig_naive <- lambda_draws %>%
+  sig_naive <- pvbayes_obj$draws$lambda %>%
     posterior::quantile2(0.05) %>%
     {ifelse( .> 1, 1, 0)}
 
-  return(
-    c(
-      res,
-      list(
-        sig_naive = sig_naive
-      )
+  out <- c(
+    res,
+    list(
+      sig_naive = sig_naive
     )
+  )
 
+  class(out) <- "pvbayes_est"
+
+  return(
+    out
   )
 
 }

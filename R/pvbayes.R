@@ -167,13 +167,10 @@ pvbayes <- function(contin_table,
 
   par_vec <- c(
     "lambda",
-    "lambda_indep",
-    "lambda_resid",
     "omega",
     "kappa",
     "zi",
     "n_pred",
-    "beta_Drug",
     "rho_Drug",
     "rho_AE"
   )
@@ -212,15 +209,19 @@ pvbayes <- function(contin_table,
       }
     )
 
+  out_list <- list(
+    model = model,
+    data = contin_table,
+    E = table_E,
+    draws = draws_list,
+    MCMC_convergence = c(glue::glue("Divergence rate: {div_rate*100}%"),
+                         convergence_msg)
+  )
+
+  class(out_list) <- "pvbayes"
+
   return(
-    list(
-      model = model,
-      data = contin_table,
-      E = table_E,
-      draws = draws_list,
-      MCMC_convergence = c(glue::glue("Divergence rate: {div_rate*100}%"),
-                           convergence_msg)
-    )
+    out_list
   )
 
 
