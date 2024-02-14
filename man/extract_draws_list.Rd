@@ -4,12 +4,12 @@
 \alias{extract_draws_list}
 \title{Extract lambda draws from pvBayes object and transform to a list form}
 \usage{
-extract_draws_list(obj, par = "lambda")
+extract_draws_list(pvbayes_obj, par = "lambda")
 }
 \arguments{
-\item{obj}{A pvBayes object with lambda draws}
-
 \item{par}{Name of draws transform to list}
+
+\item{obj}{A pvBayes object with lambda draws}
 }
 \value{
 \itemize{

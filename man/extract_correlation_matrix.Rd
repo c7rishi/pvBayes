@@ -5,8 +5,8 @@
 \title{Extract correlation matrix from pvBayes object}
 \usage{
 extract_correlation_matrix(
-  obj,
-  par,
+  pvbayes_obj,
+  par = "lambda",
   by_row = FALSE,
   method = "pearson",
   log_scale = FALSE,

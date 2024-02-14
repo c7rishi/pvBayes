@@ -5,7 +5,7 @@
 \title{Signal detection function using MCMC samples with pDFR threshold}
 \usage{
 pvbayes_est(
-  lambda_draws,
+  pvbayes_obj,
   test_stat = function(x) {
      quantile(x, 0.05)
  },
@@ -15,11 +15,11 @@ pvbayes_est(
 )
 }
 \arguments{
-\item{lambda_draws}{An rvar object of MCMC samples obtained from \code{pvbayes}.}
-
 \item{test_stat}{A function of test statistic (e.g. mean, quantile).}
 
 \item{alpha}{A real value between (0,1). Confidence level s.t. pFDR(k)=alpha.}
+
+\item{lambda_draws}{An rvar object of MCMC samples obtained from \code{pvbayes}.}
 }
 \value{
 \itemize{

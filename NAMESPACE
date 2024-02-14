@@ -2,7 +2,9 @@
 
 export("%>%")
 export(data_generation)
+export(extract_bayes_tie_mat)
 export(extract_correlation_matrix)
+export(extract_discovery_mat)
 export(extract_draws_list)
 export(model_name)
 export(pFDR)

@@ -1,7 +1,5 @@
 library(tidyverse)
 library(pvLRT)
-library(posterior)
-
 
 signal_mat <- matrix(1, nrow(statin46), ncol(statin46))
 

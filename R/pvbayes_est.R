@@ -29,6 +29,7 @@ pvbayes_est <- function(pvbayes_obj,
     stop("A 'pvbayes' object is required!")
   }
 
+
   res <-
     pFDR(lambda_draws = pvbayes_obj$draws$lambda,
          test_stat =  test_stat,
@@ -36,14 +37,20 @@ pvbayes_est <- function(pvbayes_obj,
          alpha = alpha,
          thresh = thresh)
 
-  sig_naive <- pvbayes_obj$draws$lambda %>%
-    posterior::quantile2(0.05) %>%
-    {ifelse( .> 1, 1, 0)}
+  discovery_global <- ((pvbayes_obj$draws$lambda %>%
+    posterior::draws_of() %>%
+    apply(1, function(x)max(x[,-ncol(res$test_stat)]) ) %>%
+    quantile(0.05) %>% unname()) > res$k) * 1
+
+  # discovery_naive <- pvbayes_obj$draws$lambda %>%
+  #   posterior::quantile2(0.05) %>%
+  #   {ifelse( .> 1, 1, 0)}
 
   out <- c(
     res,
     list(
-      sig_naive = sig_naive
+      discovery_global = discovery_global#,
+      #discovery_naive = discovery_naive
     )
   )
 

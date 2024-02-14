@@ -18,6 +18,6 @@ extract_discovery_mat <- function(pvbayes_est_obj,
     stop("A 'pvbayes_est' object is required!")
   }
 
-  return(pvbayes_est_obj$sig_pfdr)
+  return(pvbayes_est_obj$discovery)
 }
 

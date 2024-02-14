@@ -206,7 +206,7 @@ pFDR0 <- function(lambda_draws,
       test_stat = test_stat_mat,
       BayesTIE = tmp_prob_null_mat_full,
       range_test_stat = range_test_stat,
-      sig_pfdr = dscov_mat
+      discovery = dscov_mat
     )
   )
   # The output contains a matrix of Bayes type-I-error,
