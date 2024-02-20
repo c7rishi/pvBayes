@@ -14,7 +14,7 @@ pvbayes(
   stan_iter_sampling = 1000,
   stan_cov_rate = 0.5,
   retry = 10,
-  return_stan = FALSE,
+  stan_parallel_chains = getOption("mc.cores", 4),
   ...
 )
 }
@@ -23,11 +23,8 @@ pvbayes(
 
 \item{model}{Options of model:
 \itemize{
-\item \code{poisson} - poisson model with horseshoe prior
-\item \code{poisson_indep} - poisson model under independent assumption with horseshoe prior
-\item \code{zip} - zero-inflated poisson model with horseshoe prior
-\item \code{zip_indep} - zero-inflated poisson model under independent assumption with horseshoe prior
-\item \code{beta_prime} - beta prime model
+\item \code{zip_horseshoe} - zero-inflated poisson model with horseshoe prior
+\item \code{zip_horseshoe_LKJ} - zero-inflated poisson model under independent assumption with horseshoe prior
 }}
 
 \item{stan_obj}{User defined model in stan with input: \code{n} counts in each cells, \code{E} expected value for each cells, and \code{N} total number of cells IxJ}

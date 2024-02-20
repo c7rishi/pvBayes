@@ -129,7 +129,7 @@ for (i in 1:10) {
 
   signal_row_pos <-
     lapply(
-      1:6, function(x){
+      1:length(signal_row_common), function(x){
         sample(
           setdiff(c(1:(nrow(statin46)-1)), signal_row_common),
           size = 6-length(signal_row_common)

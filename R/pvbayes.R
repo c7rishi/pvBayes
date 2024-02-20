@@ -4,11 +4,8 @@
 #' @param contin_table IxJ contingency table showing pairwise counts of adverse events for I AE (along the rows) and J Drugs (along the columns). Colnames and rownames are needed.
 #' @param model Options of model:
 #' \itemize{
-#'   \item `poisson` - poisson model with horseshoe prior
-#'   \item `poisson_indep` - poisson model under independent assumption with horseshoe prior
-#'   \item `zip` - zero-inflated poisson model with horseshoe prior
-#'   \item `zip_indep` - zero-inflated poisson model under independent assumption with horseshoe prior
-#'   \item `beta_prime` - beta prime model
+#'   \item `zip_horseshoe` - zero-inflated poisson model with horseshoe prior
+#'   \item `zip_horseshoe_LKJ` - zero-inflated poisson model under independent assumption with horseshoe prior
 #' }
 #' @param starting option of HMC start point
 #' \itemize{
@@ -43,7 +40,8 @@ pvbayes <- function(contin_table,
                     stan_iter_sampling = 1000,
                     stan_cov_rate = 0.5,
                     retry = 10,
-                    return_stan = FALSE,
+                    stan_parallel_chains = getOption("mc.cores", 4),
+                    #return_stan = FALSE,
                     ...){
 
   #find compiled model
@@ -142,7 +140,8 @@ pvbayes <- function(contin_table,
       chains = stan_chains,
       refresh = 500,
       init = starting_list,
-      iter_sampling = stan_iter_sampling
+      iter_sampling = stan_iter_sampling,
+      parallel_chains = stan_parallel_chains
     )
 
     mod.fit <- do.call(

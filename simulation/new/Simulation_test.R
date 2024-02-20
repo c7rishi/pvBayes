@@ -13,7 +13,7 @@ job_id <- Sys.getenv("SLURM_JOB_ID") %>%
   {
     if (is.na(.)){
       ## fake input for local test
-      13225877
+      14988275
     } else{
       .
     }
@@ -35,7 +35,7 @@ cmd_args <- commandArgs(trailingOnly = TRUE) %>%
   {
     if (length(.) == 0){
       ## fake input for local test
-      c("1",
+      c("1.3",
         "simulation_case1")
     } else {
       .
@@ -122,10 +122,10 @@ confusion_matrix <- function(signal, discovery, discovery_global){
   )
 }
 
-for (i in 1:10) {
+for (i in 1:5) {
 
   seed_task <- job_id + task_id + i
-
+  seed_task <- 14988276
   set.seed(seed_task)
 
   data <- r_contin_table_zip(
@@ -153,7 +153,7 @@ for (i in 1:10) {
       tryCatch(
         pvbayes(data,
                 model = m,
-                stan_chains = 4,
+                stan_chains = 2,
                 stan_seed = 1234,
                 stan_iter_sampling = 500,
                 starting = "LRT"),
