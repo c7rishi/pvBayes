@@ -5,3 +5,4 @@
 ^inst/*.rds$
 ^test_examples/*$
 ^simulation/*$
+^inst/stan/test_model_archive/*$
