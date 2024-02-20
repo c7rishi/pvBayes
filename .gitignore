@@ -37,4 +37,4 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
-inst/stan/normal_sample
+inst/stan/test_model_archive
