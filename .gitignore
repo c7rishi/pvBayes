@@ -38,4 +38,4 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-inst/stan/test_model_archive/
+pvBayes/inst/stan/test_model_archive/
