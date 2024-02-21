@@ -25,10 +25,7 @@ temp <- tb_all %>%
 
 temp %>% filter(
   is.na(value)
-) %>% filter(
-  metric == "Power"
 )
-
 temp %>%
   group_by(model, metric) %>%
   summarise(

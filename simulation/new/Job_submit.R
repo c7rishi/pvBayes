@@ -1,11 +1,26 @@
 library(tidyverse)
 
-function_name <- "Simulation_Case2b.R"
+cmd_args <- commandArgs(trailingOnly = TRUE) %>%
+  {
+    if (length(.) == 0){
+      ## fake input for local test
+      c("Case1")
+    } else {
+      .
+    }
+  }
 
-folder <- "simulation_case2b"
+folder <- cmd_args[[1]]
+
+function_name <- glue::glue("Simulation_{folder}.R")
 
 N_total_rep <- 100
-n_task_simul <- 20
+n_task_simul <- tryCatch(
+  cmd_args[[2]],
+  error = function(e){
+    30
+  }
+  )
 
 lambda_true <- c(1, 1.3, 1.4, 1.5, 1.7, 1.9, 2, 2.5, 3, 4)
 

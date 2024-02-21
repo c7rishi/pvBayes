@@ -36,7 +36,7 @@ cmd_args <- commandArgs(trailingOnly = TRUE) %>%
     if (length(.) == 0){
       ## fake input for local test
       c("2",
-        "simulation_case1")
+        "Case2a")
     } else {
       .
     }
@@ -154,7 +154,7 @@ for (i in 1:10) {
   log_signal_mat <-
     matrix(rnorm(n = 47*7, mean = 0, sd = 0.00001), nrow = 47, ncol = 7)
 
-  for (j in 1:2){
+  for (j in 1:length(signal_row_common)){
 
     log_signal_mat[signal_row_pos[[j]],j] <-
       log(as.numeric(lambda_true)) + log_signal_mat[signal_row_pos[[j]],j]
@@ -289,7 +289,7 @@ out_name <- glue::glue("{folder}_\\
 
 if (path != "Local_test") {
   saveRDS(output,
-          file = glue::glue(path,"/",out_name,".RDS"))
+          file = glue::glue("{path}/{out_name}.RDS"))
 }
 
 

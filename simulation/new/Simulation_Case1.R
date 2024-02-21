@@ -36,7 +36,7 @@ cmd_args <- commandArgs(trailingOnly = TRUE) %>%
     if (length(.) == 0){
       ## fake input for local test
       c("1",
-        "simulation_case1")
+        "Case1")
     } else {
       .
     }
@@ -155,7 +155,7 @@ for (i in 1:10) {
                 model = m,
                 stan_chains = 4,
                 stan_seed = 1234,
-                stan_iter_sampling = 500,
+                stan_iter_sampling = 1000,
                 starting = "LRT"),
         error = function(e){ e }
       )
@@ -254,7 +254,7 @@ out_name <- glue::glue("{folder}_\\
 
 if (path != "Local_test") {
   saveRDS(output,
-          file = glue::glue(path,"/",out_name,".RDS"))
+          file = glue::glue("{path}/{out_name}.RDS"))
 }
 
 

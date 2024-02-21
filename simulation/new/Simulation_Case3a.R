@@ -1,5 +1,5 @@
-## Simulation Case 2b
-## 2 row signals with random position
+## Simulation Case 3a
+## 4 row signals with random position
 ## lambda value is supplied from simulation command in CCR
 ## zero inflation parameter omega is set to be 0.1
 
@@ -76,8 +76,8 @@ if( !is.null(folder) ){
 
 path <- ifelse(is.server, path_output1, "Local_test")
 
-# signal_row_common <- c(1, 15, 30, 45)
-signal_row_common <- c(30, 45)
+signal_row_common <- c(1, 15, 30, 45)
+# signal_row_common <- c(30, 45)
 
 
 output <- tibble(
@@ -154,10 +154,16 @@ for (i in 1:10) {
   log_signal_mat <-
     matrix(rnorm(n = 47*7, mean = 0, sd = 0.00001), nrow = 47, ncol = 7)
 
-  for (j in 1:length(signal_row_common)){
+  for (j in 1:2){
 
     log_signal_mat[signal_row_pos[[j]],j] <-
       log(as.numeric(lambda_true)) + log_signal_mat[signal_row_pos[[j]],j]
+
+  }
+  for (j in 3:4){
+
+    log_signal_mat[signal_row_pos[[j]],j] <-
+      log(as.numeric(lambda_true*1.2)) + log_signal_mat[signal_row_pos[[j]],j]
 
   }
 

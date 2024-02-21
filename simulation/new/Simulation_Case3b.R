@@ -1,4 +1,4 @@
-## Simulation Case 2b
+## Simulation Case 3b
 ## 2 row signals with random position
 ## lambda value is supplied from simulation command in CCR
 ## zero inflation parameter omega is set to be 0.1
@@ -154,12 +154,11 @@ for (i in 1:10) {
   log_signal_mat <-
     matrix(rnorm(n = 47*7, mean = 0, sd = 0.00001), nrow = 47, ncol = 7)
 
-  for (j in 1:length(signal_row_common)){
+  log_signal_mat[signal_row_pos[[1]],1] <-
+    log(as.numeric(lambda_true)) + log_signal_mat[signal_row_pos[[1]],1]
 
-    log_signal_mat[signal_row_pos[[j]],j] <-
-      log(as.numeric(lambda_true)) + log_signal_mat[signal_row_pos[[j]],j]
-
-  }
+  log_signal_mat[signal_row_pos[[2]],2] <-
+    log(as.numeric(lambda_true*1.2)) + log_signal_mat[signal_row_pos[[2]],2]
 
   signal_mat <- log_signal_mat %>% exp()
 
