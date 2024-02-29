@@ -9,6 +9,7 @@ extract_correlation_matrix(
   par = "lambda",
   by_row = FALSE,
   method = "pearson",
+  use = "pairwise.complete.obs",
   log_scale = FALSE,
   replace_0_to_NA = TRUE,
   ...

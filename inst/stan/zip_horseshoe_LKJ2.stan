@@ -26,7 +26,7 @@ parameters {
   vector<lower = 0>[J-1] sigma_Drug;
 
 
-  real<lower = 0> sigma_ridge;
+  //real<lower = 0> sigma_ridge;
 
   cholesky_factor_corr[J-1] L_rho_Drug;
 
@@ -75,7 +75,7 @@ model {
   tau ~ cauchy(0, 1);
   sigma_AE ~ cauchy(0, 1);
   sigma_Drug ~ cauchy(0, 1);
-  sigma_ridge ~ cauchy(0, 1);
+  //sigma_ridge ~ cauchy(0, 1);
   beta_Drug_other ~ normal(0, 10);
   beta_Drug_relevant ~ multi_normal_cholesky(zero_mean, diag_pre_multiply(sigma_Drug, L_rho_Drug));
 
@@ -87,8 +87,8 @@ model {
     for (j in 1 : J){
 
       theta[i, j] ~ cauchy (0, 1);
-      log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_ridge^2) );
-      //log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2) );
+      //log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_ridge^2) );
+      log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2) );
       if (n[i, j] == 0) {
 
         target += log_sum_exp(bernoulli_lpmf(1 | omega[j]),

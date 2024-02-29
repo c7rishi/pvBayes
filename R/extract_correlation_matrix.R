@@ -15,6 +15,7 @@ extract_correlation_matrix <- function(pvbayes_obj,
                                        par = "lambda",
                                        by_row = FALSE,
                                        method = "pearson",
+                                       use = "pairwise.complete.obs",
                                        log_scale = FALSE,
                                        replace_0_to_NA = TRUE,
                                        ...){
@@ -25,7 +26,7 @@ extract_correlation_matrix <- function(pvbayes_obj,
 
     draws_list <- extract_draws_list(pvbayes_obj, par)
   }
-
+  #browser()
   tmp <- draws_list %>%
     lapply(
       function(mat){
@@ -41,10 +42,10 @@ extract_correlation_matrix <- function(pvbayes_obj,
         }
         if (by_row) {
           out <- t(mat) %>%
-            cor(method = method,...)
+            cor(method = method, use = use, ...)
         } else {
           out <- mat %>%
-            cor(method = method,...)
+            cor(method = method, use = use, ...)
         }
         return(out)
       }

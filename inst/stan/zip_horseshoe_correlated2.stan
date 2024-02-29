@@ -17,24 +17,35 @@ transformed data {
     zero_mean[j] = 0;
   }
 
+  matrix[J-1, J-1] one_mat;
+
+  for (j1 in 1:(J-1)) {
+    for(j2 in 1:(J-1))
+    one_mat[j1, j2] = 1;
+  }
+
+  matrix[J-1, J-1] identity_mat;
+
+  identity_mat = identity_matrix(J-1);
+
 }
 
 parameters {
 
   real<lower = 0> tau;
   real<lower = 0> sigma_AE;
-  vector<lower = 0>[J-1] sigma_Drug;
+
+  vector [J-1] log_sigma_Drug;
+
+  real <lower = 0> sigma_sigma_Drug;
 
 
   real<lower = 0> sigma_ridge;
 
-  cholesky_factor_corr[J-1] L_rho_Drug;
-
-
   vector[J-1] beta_Drug_relevant;
   real beta_Drug_other;
 
-
+  real<lower = 0, upper = 1> rho_Drug;
 
   array[I] real beta_AE;
   array[I, J] real<lower=0> theta;
@@ -49,9 +60,12 @@ transformed parameters {
   array[I, J] real log_lambda_tilde_total;
   array[I, J] real log_mu;
 
+  vector<lower = 0>[J-1] sigma_Drug;
+
   vector[J] beta_Drug;
 
   for (j in 1 : (J-1)) {
+    sigma_Drug[j] = exp(log_sigma_Drug[j]);
     beta_Drug[j] = beta_Drug_relevant[j];
   }
 
@@ -66,6 +80,18 @@ transformed parameters {
   }
 
 
+  corr_matrix[J-1] Rho;
+
+  Rho = rho_Drug * one_mat + (1-rho_Drug) * identity_mat;
+
+  cov_matrix[J-1] Sigma_beta_Drug_relevant;
+  Sigma_beta_Drug_relevant = diag_post_multiply(
+    diag_pre_multiply(sigma_Drug, Rho),
+    sigma_Drug
+    );
+
+
+
 
 
 }
@@ -74,13 +100,15 @@ model {
 
   tau ~ cauchy(0, 1);
   sigma_AE ~ cauchy(0, 1);
-  sigma_Drug ~ cauchy(0, 1);
+
+  log_sigma_Drug ~ normal(0, sigma_sigma_Drug);
+  sigma_sigma_Drug ~ normal(0, 1);
+
   sigma_ridge ~ cauchy(0, 1);
   beta_Drug_other ~ normal(0, 10);
-  beta_Drug_relevant ~ multi_normal_cholesky(zero_mean, diag_pre_multiply(sigma_Drug, L_rho_Drug));
+  beta_Drug_relevant ~ multi_normal(zero_mean, Sigma_beta_Drug_relevant);
 
-  L_rho_Drug ~ lkj_corr_cholesky(1);
-
+  rho_Drug ~ beta(0.5, 0.5);
 
   for (i in 1 : I){
 
@@ -88,7 +116,6 @@ model {
 
       theta[i, j] ~ cauchy (0, 1);
       log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_ridge^2) );
-      //log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2) );
       if (n[i, j] == 0) {
 
         target += log_sum_exp(bernoulli_lpmf(1 | omega[j]),
@@ -116,9 +143,6 @@ generated quantities {
   array[I, J] int<lower=0, upper=1> zi_pred;
   array[I, J] real<lower=0> lambda;
   array[I, J] real<lower=0> lambda_tilde;
-
-  matrix[J-1,J-1] rho_Drug;
-  rho_Drug = multiply_lower_tri_self_transpose(L_rho_Drug);
 
 
   for (j in 1 : J){

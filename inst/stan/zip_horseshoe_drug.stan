@@ -28,13 +28,13 @@ parameters {
 
   real<lower = 0> sigma_ridge;
 
-  cholesky_factor_corr[J-1] L_rho_Drug;
+  //cholesky_factor_corr[J-1] L_rho_Drug;
 
 
   vector[J-1] beta_Drug_relevant;
   real beta_Drug_other;
 
-
+  real<lower=0> sigma_beta_drug_relevant;
 
   array[I] real beta_AE;
   array[I, J] real<lower=0> theta;
@@ -77,9 +77,9 @@ model {
   sigma_Drug ~ cauchy(0, 1);
   sigma_ridge ~ cauchy(0, 1);
   beta_Drug_other ~ normal(0, 10);
-  beta_Drug_relevant ~ multi_normal_cholesky(zero_mean, diag_pre_multiply(sigma_Drug, L_rho_Drug));
+  beta_Drug_relevant ~ normal(0, sigma_beta_drug_relevant);
 
-  L_rho_Drug ~ lkj_corr_cholesky(1);
+  sigma_beta_drug_relevant ~ cauchy(0,1);
 
 
   for (i in 1 : I){
@@ -117,10 +117,6 @@ generated quantities {
   array[I, J] real<lower=0> lambda;
   array[I, J] real<lower=0> lambda_tilde;
 
-  matrix[J-1,J-1] rho_Drug;
-  rho_Drug = multiply_lower_tri_self_transpose(L_rho_Drug);
-
-
   for (j in 1 : J){
     for (i in 1 : I){
 
@@ -138,7 +134,7 @@ generated quantities {
       zi_pred[i, j] = bernoulli_rng( zi[i, j] );
       lambda[i, j] = (1 - zi_pred[i, j]) * exp(log_lambda_tilde_total[i, j]);
       lambda_tilde[i, j] = exp(log_lambda_tilde_total[i, j]);
-    }
+          }
   }
 
 }

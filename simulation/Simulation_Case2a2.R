@@ -1,7 +1,4 @@
-## Simulation Case 1
-## Rhabdomyolysis (col 45) with row signal
-## lambda value is supplied from simulation command in CCR
-## zero inflation parameter omega is set to be 0.1
+## Simulation Case 2
 
 library(tidyverse)
 library(pvBayes)
@@ -31,7 +28,7 @@ cmd_args <- commandArgs(trailingOnly = TRUE) %>%
         "Case1",#
         "2",
         "3"
-        )
+      )
     } else {
       .
     }
@@ -73,12 +70,6 @@ if( !is.null(folder) ){
 
 path <- ifelse(is.server, path_output1, "Local_test")
 
-### this setting use fixed signal matrix
-signal_mat <- matrix(1, nrow(statin46), ncol(statin46))
-signal_mat[45,c(1:6)] <- lambda_true
-zi_protect <- lapply(c(1:6), function(x) c(45, x))
-signal_pos <- ifelse(signal_mat > 1, 1, 0)
-
 output <- tibble(
   lambda = numeric(),
   seed = integer(),
@@ -87,45 +78,96 @@ output <- tibble(
   data = list(),
   discovery = list(),
   metrics = list(),
+  n_retry = integer(),
   stan_div = integer(),
   error = integer()
 )
 
+signal_row_common <- c(1, 10, 15, 30, 45)
 
 for (i in 1:n_loop) {
 
-  seed_task <- task_max * task_id * n_loop + i
+  n_retry <- 0
 
-  set.seed(seed_task)
+  while( n_retry <= 3 ) {
 
-  data <- r_contin_table_zip(
-    n = 1,
-    row_marginals = rowSums(statin46),
-    col_marginals = colSums(statin46),
-    signal_mat = signal_mat,
-    omega_vec = c(rep(0.1, (ncol(statin46)-1)), 0),
-    no_zi_idx =
-      c(
-        zi_protect,
-        list(
-          c(nrow(statin46), 0), # the entire last row
-          c(0, ncol(statin46)) # the entire last column
-        )
+    seed_task <- (task_max * task_id * n_loop + i) * (n_retry + 1)
+
+    set.seed(seed_task)
+
+    signal_row_pos <-
+      lapply(
+        1:6, function(x){
+          sample(
+            setdiff(c(1:(nrow(statin46)-1)), signal_row_common),
+            size = 6-length(signal_row_common)
+          ) %>%
+            c(signal_row_common) %>%
+            sort()
+        }
       )
-  )[[1]]
 
-  temp <- Simulation(
-    data = data,
-    mod = c(
-      "zip_horseshoe",
-      "zip_horseshoe_LKJ",
-      "zip_horseshoe_LKJ2"
-    ),
-    stan_chains = n_chains,
-    stan_core = getOption("mc.cores", n_chains),
-    stan_cov_rate = 0.1,
-    stan_retry = 3
-  )
+    zi_protect <- list()
+    for (r in seq_along(signal_row_pos)) {
+      for (j in signal_row_pos[[r]]) {
+        zi_protect <- c(zi_protect, list(c(j, r)))
+      }
+    }
+
+    signal_pos <- matrix(0, nrow = 47, ncol = 7)
+    for (r in seq_along(zi_protect)) {
+      signal_pos[ zi_protect[[r]][1], zi_protect[[r]][2] ] <- 1
+    }
+
+    log_signal_mat <-
+      matrix(rnorm(n = 47*7, mean = 0, sd = 0.00001), nrow = 47, ncol = 7)
+
+    for (j in 1:length(signal_row_common)){
+
+      log_signal_mat[signal_row_pos[[j]],j] <-
+        log(as.numeric(lambda_true)) + log_signal_mat[signal_row_pos[[j]],j]
+
+    }
+
+    signal_mat <- log_signal_mat %>% exp()
+
+    data <- r_contin_table_zip(
+      n = 1,
+      row_marginals = rowSums(statin46),
+      col_marginals = colSums(statin46),
+      signal_mat = signal_mat,
+      omega_vec = c(rep(0.1, (ncol(statin46)-1)), 0),
+      no_zi_idx =
+        c(
+          zi_protect,
+          list(
+            c(nrow(statin46), 0), # the entire last row
+            c(0, ncol(statin46)) # the entire last column
+          )
+        )
+    )[[1]]
+
+    temp <- Simulation(
+      data = data,
+      mod = c(
+        "zip_horseshoe",
+        "zip_horseshoe_LKJ"
+      ),
+      stan_chains = n_chains,
+      stan_core = getOption("mc.cores", n_chains),
+      stan_cov_rate = 0.1,
+      stan_retry = 1
+    )
+
+    if( temp$stan_div == 1) {
+      n_retry <- n_retry + 1
+    } else{
+      break;
+    }
+
+  }
+
+
 
   output <-
     add_row(
@@ -137,6 +179,7 @@ for (i in 1:n_loop) {
       data = list(data),
       discovery = temp$discovery,
       metrics = temp$metrics,
+      n_retry = n_retry,
       stan_div = temp$stan_div,
       error = temp$error
     )
@@ -145,7 +188,7 @@ for (i in 1:n_loop) {
 }
 
 
- out_name <- glue::glue("{folder}_\\
+out_name <- glue::glue("{folder}_\\
   job{job_id}_\\
   task{task_id}")
 

@@ -12,9 +12,10 @@ pvbayes(
   stan_seed = 123,
   stan_chains = 4,
   stan_iter_sampling = 1000,
-  stan_cov_rate = 0.5,
+  stan_cov_rate = 0.3,
   retry = 10,
-  stan_parallel_chains = getOption("mc.cores", 4),
+  stan_parallel_chains = 4,
+  return_all_stan_par = FALSE,
   ...
 )
 }

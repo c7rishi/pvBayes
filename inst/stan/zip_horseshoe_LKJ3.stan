@@ -79,7 +79,7 @@ model {
   beta_Drug_other ~ normal(0, 10);
   beta_Drug_relevant ~ multi_normal_cholesky(zero_mean, diag_pre_multiply(sigma_Drug, L_rho_Drug));
 
-  L_rho_Drug ~ lkj_corr_cholesky(1);
+  L_rho_Drug ~ lkj_corr_cholesky(2.0);
 
 
   for (i in 1 : I){

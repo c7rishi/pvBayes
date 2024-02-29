@@ -38,10 +38,10 @@ pvbayes <- function(contin_table,
                     stan_seed = 123,
                     stan_chains = 4,
                     stan_iter_sampling = 1000,
-                    stan_cov_rate = 0.5,
+                    stan_cov_rate = 0.3,
                     retry = 10,
-                    stan_parallel_chains = getOption("mc.cores", 4),
-                    #return_stan = FALSE,
+                    stan_parallel_chains = 4,
+                    return_all_stan_par = FALSE,
                     ...){
 
   #find compiled model
@@ -119,15 +119,24 @@ pvbayes <- function(contin_table,
 
     starting_list <- lapply(
       1:stan_chains,
-      function(i)
-        list(
-          log_lambda = log(lambda_start),
+      function(i){
+        out <- list(
+          log_lambda_tilde = log(lambda_start),
           omega = omega_start
         )
+        if (grepl("LKJ|correlated" , model, ignore.case = TRUE)){
+          out$beta_Drug_relevant <- rep(0, (ncol(contin_table)-1))
+          out$beta_Drug_other <- 0
+          out$beta_AE <- rep(0, nrow(contin_table))
+        }
+        return(out)
+      }
+
     )
 
 
   }
+  #browser()
 
   stan_retry <- TRUE
   n_retry <- 0
@@ -142,7 +151,10 @@ pvbayes <- function(contin_table,
       init = starting_list,
       iter_sampling = stan_iter_sampling,
       parallel_chains = stan_parallel_chains
+    ) %>% c(
+      list(...)
     )
+
 
     mod.fit <- do.call(
       mod$sample,
@@ -154,7 +166,7 @@ pvbayes <- function(contin_table,
     )$num_divergent %>%
       {sum(.)/(stan_iter_sampling * stan_chains)}
 
-    stan_retry <- {div_rate > stan_cov_rate} & {n_retry <= retry}
+    stan_retry <- {div_rate > stan_cov_rate} & {n_retry < retry}
     n_retry <- n_retry + 1
     stan_seed <- stan_seed + 1
 
@@ -164,14 +176,32 @@ pvbayes <- function(contin_table,
 
   # browser()
 
+  # if(!return_all_stan_par){
+  #
+  #   par_vec <- c(
+  #     "lambda",
+  #     "omega",
+  #     "kappa",
+  #     "zi",
+  #     "n_pred",
+  #     "rho_Drug",
+  #     "rho_AE"
+  #   )
+  #
+  # }else{
+  #   par_vec <-
+  # }
+
   par_vec <- c(
     "lambda",
     "omega",
     "kappa",
     "zi",
+    "zi_pred",
     "n_pred",
     "rho_Drug",
-    "rho_AE"
+    "rho_AE",
+    "lambda_tilde"
   )
 
   draws_list <-  1:length(par_vec) %>%

@@ -3,9 +3,9 @@ library(tidyverse)
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 Case <- cmd_args[[1]]
-folder <- glue::glue("Simulation_{Case}")
+
 path_output0 <- file.path("/projects", "academic", "chakrab2", "xinweihu", "output")
-path_output1 <- file.path(path_output0, folder)
+path_output1 <- file.path(path_output0, Case)
 
 # path_output1 <- "D:/Documents/UB/Research/Code/CCR/Download"
 
