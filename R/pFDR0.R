@@ -6,10 +6,54 @@ pFDR0 <- function(lambda_draws,
                   test_stat = function(x) quantile(x, 0.05),
                   optim = FALSE,
                   alpha = NULL,
-                  k = 1.0){
+                  k = 1.0,
+                  replace_prob_null_NA = FALSE) {
+  # browser()
+  posterior_prob_null <- mean(lambda_draws <= 1)
+  test_stat_mat <- test_stat(lambda_draws)
+  discovery_mat <- (1 * (test_stat_mat > k)) %>%
+    ifelse(
+      is.na(.),
+      0,
+      .
+    )
+  n_discovery <- sum(discovery_mat, na.rm = TRUE) %>%
+    {
+      if (is.na(.)) 0
+      else if (is.infinite(.)) 0
+      else .
+    }
+  pFDR <- if (n_discovery == 0) {
+    0
+  } else {
+    sum(posterior_prob_null * discovery_mat)/n_discovery
+  }
+
+  return(
+    list(
+      k = k,
+      optim = optim,
+      pFDR = pFDR,
+      test_stat = test_stat_mat,
+      BayesTIE = posterior_prob_null,
+      range_test_stat = range(test_stat_mat),
+      discovery = 1 * discovery_mat
+    )
+  )
+}
+
+
+pFDR0_old <- function(lambda_draws,
+                  test_stat = function(x) quantile(x, 0.05),
+                  optim = FALSE,
+                  alpha = NULL,
+                  k = 1.0,
+                  replace_prob_null_NA = FALSE){
 
   # test_stat is an user-defined function to calculate the
   # test statistic (critical value).
+
+  # browser()
 
   # browser()
 
@@ -33,6 +77,13 @@ pFDR0 <- function(lambda_draws,
   # add new col named obs_test_stat
   # computed by the test_stat function, referenced by 'value'
 
+
+  # pp <- test_stat(lambda_draws)
+
+
+  # test_stat_mat <- test_stat(lambda_draws)
+  # discovery <- I(test_stat_mat > k)
+  # n_discovery <- sum(discovery)
 
   test_stat_mat <- tmp_draws[
     ,
@@ -59,7 +110,7 @@ pFDR0 <- function(lambda_draws,
       value.var = "obs_test_stat"
     ) %>% # the rownames and colnames were disordered, fixed by adding the following two pipe
     {.[
-     order(match(AE,rownames(lambda_draws)))
+      order(match(AE,rownames(lambda_draws)))
     ] } %>%
     data.table::setcolorder(.,c("AE", colnames(lambda_draws))) %>%
     {
@@ -130,6 +181,8 @@ pFDR0 <- function(lambda_draws,
     keyby = parameter
   ] # long table, but not complete
 
+  # browser()
+
   tmp_prob_null_mat_sub <- tmp_prob_null_reject_sub_dt %>%
     {
       if (nrow(.) >= 1) {
@@ -174,12 +227,23 @@ pFDR0 <- function(lambda_draws,
   ] <- tmp_prob_null_mat_sub
   # table for output
 
-  pFDR <- ifelse(
-    nrow(tmp_prob_null_reject_sub_dt) >= 1,
-    mean(tmp_prob_null_reject_sub_dt$prob_null,
-         na.rm = TRUE),
-    NA
-  )
+  if( nrow(tmp_prob_null_reject_sub_dt)>0 ){
+
+    pFDR <- ifelse(
+      nrow(tmp_prob_null_reject_sub_dt) >= 1,
+      mean(tmp_prob_null_reject_sub_dt$prob_null,
+           na.rm = TRUE),
+      NA
+    )
+
+  } else {
+
+    pFDR <- 0
+
+  }
+
+
+
 
   # lambda_s1 <- lambda_draws  %>%
   #   {posterior::Pr(. <= 1)}

@@ -102,3 +102,15 @@ res %>%
                              by_row = TRUE)
 
 
+
+
+res_lkj <- data %>% pvbayes(
+  "zip_horseshoe_LKJ",
+  stan_chains = 1,
+  stan_iter_sampling = 1000
+)
+
+est <- res_lkj$draws$lambda %>% pFDR0(
+  replace_prob_null_NA = TRUE
+)
+est$BayesTIE %>% unname()

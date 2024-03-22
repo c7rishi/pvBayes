@@ -1,3 +1,26 @@
+bisection <- function(f, a, b, n = 1000, tol = 1e-5, ...) {
+
+  c <- (a + b) / 2
+  if (
+    n == 1 |
+    ((abs(f(a) - f(c)) < tol) & (abs(f(b) - f(c)) < tol)) |
+    ((b - a) < tol)
+  )  return(c)
+
+  if (f(a) * f(c) <= 0) {
+    # cat("a=", a, "b=", c, "\n")
+    bisection(f, a = a, b = c, n = n - 1)
+  } else if (f(c) * f(b) <= 0) {
+    # cat("a=", c, "b=", b, "\n")
+    bisection(f, a = c, b = b, n = n - 1)
+  } else {
+    stop("interval does not have opposite signs")
+  }
+
+}
+
+
+
 #' Optimization of pFDR
 #' @param lambda_draws An rvar object of MCMC samples obtained from `pvbayes`.
 #' @param test_stat A function of test statistic (e.g. mean, quantile).
@@ -26,12 +49,16 @@ pFDR <- function(lambda_draws,
                  optim = TRUE,
                  alpha = .05,
                  k = NULL,
-                 n_eval = 100,
-                 thresh = 1.05){
+                 n_eval = 1000,
+                 eval_tol = 1e-5,
+                 thresh = 1.05,
+                 ...){
 
+  # browser()
 
   temp <- function(x){
 
+    # browser()
     res <- pFDR0(lambda_draws = lambda_draws,
                  test_stat = test_stat,
                  k = x)$pFDR - alpha
@@ -47,17 +74,39 @@ pFDR <- function(lambda_draws,
 
   if (optim == TRUE){
 
-    k_val <- seq(from = max(range_test_stat[1], thresh),
-                 to = min(range_test_stat[2], thresh),
-                 length.out = n_eval)
+    # k_val <- seq(from = min(range_test_stat[1], thresh),
+    #              to = max(range_test_stat[2], thresh),
+    #              length.out = n_eval)
 
-    temp_val <- sapply(k_val, temp)
+    # temp_val <- sapply(k_val, temp)
+    #
+    #
+    # k.optim <- ifelse(sum(temp_val<=0)==0,
+    #                   range_test_stat[2],
+    #                   min(k_val[temp_val<=0])
+    #
+    #
+    # )
 
-    k.optim <- ifelse(sum(temp_val<=0)==0,
-                      range_test_stat[2],
-                      min(k_val[temp_val<=0])
-    )
+    k.optim <- bisection(
+      temp,
+      a = range_test_stat[1],
+      b = range_test_stat[2],
+      n = n_eval,
+      tol = eval_tol
+    ) %>%
+      max(thresh)
 
+
+#
+#
+#     temp(root2)
+#     root2 <- rootSolve::uniroot.all(Vectorize(\(x){-temp(x)}),range_test_stat )
+#     root3 <- bisection(Vectorize(\(x){temp(x)}), a = 0, b = range_test_stat[2])
+#     max(root3, 1.05)
+#     plot(k_val, temp_val, type = "l")
+#     abline(h = 0)
+#     abline(h = temp(1.000048))
 
   } else {
 

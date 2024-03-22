@@ -1,17 +1,19 @@
-2024/02/26
-Rscript Job_submit.R Case1 2 500 5 25
 
-2024/02/28
-Rscript Job_submit.R Case2a 2 500 5 25
-Rscript Job_submit.R Case2b 2 500 5 25
+
+2024/03/03
+Rscript Job_submit.R Case3a 2 300 5 50
+Rscript Job_submit.R Case3a2 2 300 5 60
+Rscript Job_submit.R Case3b 2 300 5 50
+
+2024/03/02
+Rscript Job_submit.R Case2b 2 500 5 50
 
 2024/02/29
 Rscript Job_submit.R Case2a2 2 300 5 50
 
+2024/02/28
+Rscript Job_submit.R Case2a 2 500 5 25
 
 
-Future
-Rscript Job_submit.R Case1 4 1000 10 25
-
-Rscript Job_submit.R Case1 4 1000 10 25
-
+2024/02/26
+Rscript Job_submit.R Case1 2 500 5 25

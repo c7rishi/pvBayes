@@ -23,34 +23,53 @@ pvbayes_est <- function(pvbayes_obj,
                         test_stat = function(x){quantile(x, 0.05)},
                         alpha = .05,
                         thresh = 1.1,
-                        ...){
-
+                        m = "FDR"){
 
 
   if (!("pvbayes" %in% class(pvbayes_obj))) {
     stop("A 'pvbayes' object is required!")
   }
 
-  res <-
-    pFDR(lambda_draws = pvbayes_obj$draws$lambda,
-         test_stat =  test_stat,
-         optim = TRUE,
-         alpha = alpha,
-         thresh = thresh)
+  # if (m == "pFDR") {
 
-  discovery_global <- (
-    (pvbayes_obj$draws$lambda %>%
-    posterior::draws_of() %>%
-    apply(1, function(x)max(x[,-ncol(res$test_stat)]) ) %>%
-    quantile(0.05) %>% unname()) > ifelse(is.na(res$k), max(pvbayes_obj$draws$lambda), res$k )
+    out <-
+      pFDR(lambda_draws = pvbayes_obj$draws$lambda,
+           test_stat =  test_stat,
+           optim = TRUE,
+           alpha = alpha,
+           thresh = thresh)
+
+  # } else if (m == "FDR") {
+  #
+  #   out <-
+  #     FDR(lambda_draws = pvbayes_obj$draws$lambda,
+  #         test_stat = test_stat,
+  #         optim = TRUE,
+  #         thresh = thresh,
+  #         alpha = alpha)
+  #
+  #
+  # }
+
+  if (sum(out$discovery) > 0) {
+    discovery_global <- (
+      (pvbayes_obj$draws$lambda %>%
+         posterior::draws_of() %>%
+         apply(1, function(x)max(x[,-ncol(out$test_stat)]) ) %>%
+         quantile(0.05) %>% unname()) > ifelse(is.na(out$k), max(pvbayes_obj$draws$lambda), out$k )
     ) * 1
+  } else{
+    discovery_global <- 0
+  }
+
+
 
   # discovery_naive <- pvbayes_obj$draws$lambda %>%
   #   posterior::quantile2(0.05) %>%
   #   {ifelse( .> 1, 1, 0)}
 
   out <- c(
-    res,
+    out,
     list(
       discovery_global = discovery_global#,
       #discovery_naive = discovery_naive

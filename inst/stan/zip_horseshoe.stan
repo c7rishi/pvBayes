@@ -18,7 +18,7 @@ transformed data {
 parameters {
 
   real<lower = 0> tau;
-  real<lower = 0> sigma_ridge;
+  // real<lower = 0> sigma_ridge;
   array[I, J] real<lower=0> theta;
 
   array[J] real<lower=0, upper=1> omega;
@@ -45,12 +45,12 @@ model {
 
   tau ~ cauchy(0, 1);
   omega ~ beta(0.5, 0.5); //Jeffrey's prior
-  sigma_ridge ~ cauchy(0, 1);
+  // sigma_ridge ~ cauchy(0, 1);
   for (i in 1 : I) {
     for (j in 1 : J) {
 
       theta[i,j] ~ cauchy (0, 1);
-      log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_ridge^2) );
+      log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 ) );
 
       if (n[i, j] == 0) {
 

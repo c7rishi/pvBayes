@@ -1,4 +1,3 @@
-// Poisson model assuming independent and specify horseshoe prior on Poisson mean
 data {
 
   int<lower=0> I;
@@ -12,62 +11,77 @@ transformed data {
 
   array[I, J] real log_E = log(E);
 
+  vector[J-1] zero_mean;
+
+  for (j in 1:(J-1)) {
+    zero_mean[j] = 0;
+  }
+
 }
 
 parameters {
 
   real<lower = 0> tau;
   real<lower = 0> sigma_AE;
-  real<lower = 0> sigma_Drug;
-  real <lower = 0, upper = 1> rho_Drug;
 
-  vector[J] beta_Drug;
+  vector [J-1] log_sigma_Drug;
 
-  real<lower = 0> sigma_indep2;
+  real <lower = 0> sigma_sigma_Drug;
 
-  array[J] real<lower=0, upper=1> omega;
+
+  real<lower = 0> sigma_ridge;
+
+  vector[J-1] beta_Drug_relevant;
+  real beta_Drug_other;
+
+  real<lower = 0, upper = 1> rho_Drug;
 
   array[I] real beta_AE;
   array[I, J] real<lower=0> theta;
-  array[I, J] real log_lambda_resid;
 
+  array[J] real<lower=0, upper=1> omega;
+  array[I, J] real log_lambda_tilde;
 }
 
 transformed parameters {
 
-  cov_matrix[J] sigma_beta_Drug_joint;
 
-  for (j1 in 1 : J) {
-    for (j2 in 1 : J) {
+  array[I, J] real log_lambda_tilde_total;
+  array[I, J] real log_mu;
+
+  vector<lower = 0>[J-1] sigma_Drug;
+
+  vector[J] beta_Drug;
+
+  for (j in 1 : (J-1)) {
+    sigma_Drug[j] = exp(log_sigma_Drug[j]);
+    beta_Drug[j] = beta_Drug_relevant[j];
+  }
+
+  beta_Drug[J] = beta_Drug_other;
+
+  for (i in 1 : I){
+
+    for (j in 1 : J ){
+      log_lambda_tilde_total[i, j] = beta_AE[i] + beta_Drug[j] + log_lambda_tilde[i, j];
+      log_mu[i, j] = log_lambda_tilde_total[i, j] + log_E[i, j];
+    }
+  }
+
+  cov_matrix[J-1] Sigma_beta_Drug_relevant;
+
+  for (j1 in 1 : J-1) {
+    for (j2 in 1 : J-1) {
 
       if (j1 == j2) {
-        sigma_beta_Drug_joint[j1, j2] = sigma_Drug^2;
-      } else if (j1 != J && j2 != J){
-        sigma_beta_Drug_joint[j1, j2] = sigma_Drug^2 * rho_Drug;
+        Sigma_beta_Drug_relevant[j1, j2] = sigma_Drug[j1]^2;
       } else {
-        sigma_beta_Drug_joint[j1, j2] = 0;
+        Sigma_beta_Drug_relevant[j1, j2] = sigma_Drug[j1] * sigma_Drug[j2] * rho_Drug;
       }
 
     }
+
   }
-
-  vector[J] zero_mean;
-
-  for (j in 1:J) {
-    zero_mean[j] = 0;
-  }
-
-  array[I, J] real log_lambda;
-  array[I, J] real log_mu;
-
-  for (i in 1 : I){
-    for (j in 1 : J ){
-      log_lambda[i, j] = beta_AE[i] + beta_Drug[j] + log_lambda_resid[i, j];
-      log_mu[i, j] = log_lambda[i, j] + log_E[i, j];
-    }
-  }
-
-
 
 
 }
@@ -75,17 +89,23 @@ transformed parameters {
 model {
 
   tau ~ cauchy(0, 1);
-  rho_Drug ~ uniform(-1, 1);
   sigma_AE ~ cauchy(0, 1);
-  sigma_Drug ~ cauchy(0, 1);
-  sigma_indep2 ~ cauchy(0,1);
-  target += multi_normal_lpdf(beta_Drug | zero_mean, sigma_beta_Drug_joint);
+
+  log_sigma_Drug ~ normal(0, sigma_sigma_Drug);
+  sigma_sigma_Drug ~ cauchy(0, 1);
+
+  sigma_ridge ~ cauchy(0, 1);
+  beta_Drug_other ~ normal(0, 10);
+  beta_Drug_relevant ~ multi_normal(zero_mean, Sigma_beta_Drug_relevant);
+
+  rho_Drug ~ beta(0.5, 0.5);
 
   for (i in 1 : I){
-    for (j in 1 : J){
-      theta[i, j] ~ cauchy (0, 1);
-      log_lambda_resid[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_indep2^2) );
 
+    for (j in 1 : J){
+
+      theta[i, j] ~ cauchy (0, 1);
+      log_lambda_tilde[i,j] ~ normal ( 0, sqrt(tau^2 * theta[i, j]^2 +sigma_ridge^2) );
       if (n[i, j] == 0) {
 
         target += log_sum_exp(bernoulli_lpmf(1 | omega[j]),
@@ -99,18 +119,21 @@ model {
 
       }
     }
-    beta_AE[i] ~ normal (0, sigma_AE);
-  }
 
+    beta_AE[i] ~ normal (0, sigma_AE);
+
+  }
 
 }
 
-generated quantities{
+generated quantities {
 
   array[I, J] real<lower=0, upper=1> zi;
   array[I, J] int<lower=0> n_pred;
   array[I, J] int<lower=0, upper=1> zi_pred;
   array[I, J] real<lower=0> lambda;
+  array[I, J] real<lower=0> lambda_tilde;
+
 
   for (j in 1 : J){
     for (i in 1 : I){
@@ -127,9 +150,9 @@ generated quantities{
 
       }
       zi_pred[i, j] = bernoulli_rng( zi[i, j] );
-      lambda[i, j] = (1 - zi_pred[i, j]) * exp(log_lambda[i, j]);
+      lambda[i, j] = (1 - zi_pred[i, j]) * exp(log_lambda_tilde_total[i, j]);
+      lambda_tilde[i, j] = exp(log_lambda_tilde_total[i, j]);
     }
   }
-
 
 }

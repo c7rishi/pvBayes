@@ -29,7 +29,7 @@ N_duplicate <- N_total / n_per_task
 
 n_task_simul <- cmd_args[[5]] %>% as.numeric()
 
-lambda_true <- c(1, 1.3, 1.4, 1.5, 1.7, 1.9, 2, 2.5, 3, 4)
+lambda_true <- c(1.1, 1.3, 1.4, 1.5, 1.7, 1.9, 2, 2.5, 3, 4)
 
 ## Pattern
 ## Simulation_Case1.R #1{lambda_true} #2{folder} #3{n_chains} #4{n_per_task}

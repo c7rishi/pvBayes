@@ -9,6 +9,7 @@ tb_all <- readRDS(
 
   )
 
+
 tb_long <- tb_all %>%
   select(!c(signal_pos, signal_mat, data, discovery, error)) %>%
   unnest_longer(
@@ -68,11 +69,8 @@ plot_metrics <- function(metric = NULL,
 plot_metrics()
 
 
-utb_long %>%
-  filter(
-    measure == "FDR",
-    model == "zip_horseshoe"
-  ) %>% filter(
-    value != 0
-  )
+tb_summary_2a <- tb_summary
+tb_summary_2a$case <- "Strong"
+
+
 

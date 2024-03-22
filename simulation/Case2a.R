@@ -67,12 +67,32 @@ plot_metrics <- function(metric = NULL,
 }
 plot_metrics()
 
+tb_long %>% filter(lambda == 2) %>%
+  filter(measure == "Sensitivity") %>%
+  pivot_wider(
+    values_from = value,
+    names_from = model
+  ) %>% select(seed, zip_horseshoe, zip_horseshoe_LKJ, pvlrt) %>%
+  filter(pvlrt < zip_horseshoe_LKJ)
 
-tb_long %>%
-  filter(
-    measure == "FDR",
-    model == "zip_horseshoe"
-  ) %>% filter(
-    value != 0
+data <- tb_all %>% filter(seed == 10005, lambda==2) %>%
+  pull(data) %>% {.[[1]]}
+res <- data %>%
+  pvbayes(
+    stan_chains = 1,model = "zip_horseshoe_LKJ_noridge",
+    starting = "LRT"
   )
 
+est_pFDR <- res1 %>%  pvbayes_est(
+  m = "pFDR",
+  # test_stat = function(x){
+  #   lambdahat <- posterior::quantile2(x, 0.5)
+  #   -(lambdahat - 1) * E + data * log(lambdahat)
+  # },
+  # thresh = 1e-5,
+  thresh = 1.01,
+  test_stat = function(x) {
+    posterior::quantile2(x, probs = 0.05)
+  }
+)
+est_pFDR$discovery %>% unname()
