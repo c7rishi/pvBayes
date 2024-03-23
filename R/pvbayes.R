@@ -33,6 +33,7 @@
 #' @export
 pvbayes <- function(contin_table,
                     model = "zip_horseshoe",
+                    model_par = NULL,
                     stan_obj = NULL,
                     starting = "random",
                     stan_seed = 123,

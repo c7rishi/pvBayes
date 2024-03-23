@@ -32,12 +32,12 @@ pvbayes_est <- function(pvbayes_obj,
 
   # if (m == "pFDR") {
 
-    out <-
-      pFDR(lambda_draws = pvbayes_obj$draws$lambda,
-           test_stat =  test_stat,
-           optim = TRUE,
-           alpha = alpha,
-           thresh = thresh)
+  out <-
+    pFDR(lambda_draws = pvbayes_obj$draws$lambda,
+         test_stat =  test_stat,
+         optim = TRUE,
+         alpha = alpha,
+         thresh = thresh)
 
   # } else if (m == "FDR") {
   #
