@@ -90,6 +90,13 @@ pvbayes <- function(contin_table,
     E = table_E
   )
 
+  if (!is.null(model_par)){
+    stan_data <- c(
+      stan_data,
+      model_par
+    )
+  }
+
   starting_list <- NULL
 
   if (starting != "random") {

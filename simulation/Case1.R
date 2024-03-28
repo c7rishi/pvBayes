@@ -10,18 +10,18 @@ tb_all <- readRDS(
 )
 #
 #
-# tb_long %>%
-#   filter(metric == "Level" & lambda == 1) %>%
-#   select(seed, value, model) %>%
-#   pivot_wider(
-#     names_from = model,
-#     values_from = value
-#   ) %>%
-#   select(seed, zip_horseshoe_LKJ, pvlrt) %>%
-#   filter(
-#     pvlrt == 0, zip_horseshoe_LKJ == 1
-#   )
-#
+tb_long %>%
+  filter(metric == "Sensitivity" & lambda == 1.7) %>%
+  select(seed, value, model) %>%
+  pivot_wider(
+    names_from = model,
+    values_from = value
+  ) %>%
+  select(seed, zip_horseshoe, pvlrt) %>%
+  filter(
+    pvlrt > zip_horseshoe
+  )
+
 # data <- tb_all %>%
 #   filter(
 #     lambda == 1, seed == 50001

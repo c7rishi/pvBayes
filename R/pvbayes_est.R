@@ -22,8 +22,8 @@
 pvbayes_est <- function(pvbayes_obj,
                         test_stat = function(x){quantile(x, 0.05)},
                         alpha = .05,
-                        thresh = 1.1,
-                        m = "FDR"){
+                        thresh = 1.1
+                        ){
 
 
   if (!("pvbayes" %in% class(pvbayes_obj))) {

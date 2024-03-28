@@ -7,7 +7,7 @@ tb_all <- readRDS(
     "D:/Documents/UB/Research/Code/CCR/Download/{case}_combine.RDS"
   )
 
-  )
+)
 
 tb_long <- tb_all %>%
   select(!c(signal_pos, signal_mat, data, discovery, error)) %>%
@@ -79,7 +79,9 @@ data <- tb_all %>% filter(seed == 10005, lambda==2) %>%
   pull(data) %>% {.[[1]]}
 res <- data %>%
   pvbayes(
-    stan_chains = 1,model = "zip_horseshoe_LKJ_noridge",
+    stan_chains = 1,
+    model = "zip_horseshoe_LKJ",
+    model_par = list(xi = 1),
     starting = "LRT"
   )
 
@@ -96,3 +98,60 @@ est_pFDR <- res1 %>%  pvbayes_est(
   }
 )
 est_pFDR$discovery %>% unname()
+
+res <-  c(0.5, 1, 2, 5)%>%
+  sapply(
+    function(x){
+      pvbayes(
+        data,
+        stan_chains = 1,
+        model = "zip_horseshoe_LKJ",
+        model_par = list(xi = x),
+        starting = "LRT",
+        stan_cov_rate = 0.1,
+        retry = 5
+      )
+    },
+    simplify = FALSE
+  )
+
+est <- res %>%
+  lapply(
+    function(x){
+      pvbayes_est(
+        x,
+        m = "pFDR",
+        thresh = 1.05,
+        test_stat = function(x) {
+          posterior::quantile2(x, probs = 0.05)
+        }
+      )
+
+    }
+  )
+est[[1]]
+
+est[[1]]$discovery[45,]
+est %>% lapply(
+  \(x){
+    x$discovery[45,]
+
+  }
+)
+
+#
+# pvbayes_est(
+#   m = "pFDR",
+#   # test_stat = function(x){
+#   #   lambdahat <- posterior::quantile2(x, 0.5)
+#   #   -(lambdahat - 1) * E + data * log(lambdahat)
+#   # },
+#   # thresh = 1e-5,
+#   thresh = 1.01,
+#   test_stat = function(x) {
+#     posterior::quantile2(x, probs = 0.05)
+#   }
+# )
+#
+#
+#
